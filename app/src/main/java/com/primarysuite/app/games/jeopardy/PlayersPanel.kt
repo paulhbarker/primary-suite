@@ -3,10 +3,8 @@ package com.primarysuite.app.games.jeopardy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,15 +48,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -71,10 +66,6 @@ import androidx.compose.ui.window.Dialog
 import com.primarysuite.app.R
 import com.primarysuite.app.core.protocol.GameMessage
 import com.primarysuite.app.ui.theme.AppColors
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
 
@@ -102,6 +93,7 @@ object PlayerDialogTags {
 fun PlayersPanel(state: HostState, send: (GameMessage) -> Unit, confirm: (String, () -> Unit) -> Unit) {
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
+    var draining by rememberSaveable { mutableStateOf(false) }
     val clue = state.clue
 
     Column(
@@ -124,6 +116,9 @@ fun PlayersPanel(state: HostState, send: (GameMessage) -> Unit, confirm: (String
             val locked = clue?.lockedOut?.contains(p.id) == true
             PlayerRow(p, hasControl = state.control == p.id, answering = answering, locked = locked) { selected = p.id }
         }
+        if (state.players.isNotEmpty()) {
+            Box(Modifier.padding(top = 4.dp)) { DrainPointsButton { draining = true } }
+        }
         state.lastButton?.let { b ->
             val who = b.playerId?.let { id -> state.players.firstOrNull { it.id == id }?.name ?: "?" } ?: stringResource(R.string.players_not_assigned)
             Text(
@@ -138,6 +133,7 @@ fun PlayersPanel(state: HostState, send: (GameMessage) -> Unit, confirm: (String
     state.players.firstOrNull { it.id == selected }?.let { player ->
         PlayerDialog(player, state, send, confirm, onClose = { selected = null })
     }
+    if (draining) DrainScreen(state.players, send, onClose = { draining = false })
     if (adding) AddPlayerDialog(onAdd = { send(HostCommands.addPlayer(it)); adding = false }, onDismiss = { adding = false })
 }
 
@@ -370,30 +366,13 @@ private fun PlayerDialog(
 @Composable
 private fun DrainButton(onTick: () -> Unit) {
     var draining by remember { mutableStateOf(false) }
-    val tick by rememberUpdatedState(onTick)
-    val scope = rememberCoroutineScope()
-    var job by remember { mutableStateOf<Job?>(null) }
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .background(if (draining) AppColors.Error else Color.Transparent, RoundedCornerShape(24.dp))
             .border(1.dp, AppColors.Error, RoundedCornerShape(24.dp))
-            .pointerInput(Unit) {
-                awaitEachGesture {
-                    awaitFirstDown()
-                    draining = true
-                    job = scope.launch {
-                        while (isActive) {
-                            tick()
-                            delay(HostCommands.DRAIN_INTERVAL_MS)
-                        }
-                    }
-                    waitForUpOrCancellation()
-                    job?.cancel()
-                    draining = false
-                }
-            }
+            .holdToRepeat(onHoldChange = { draining = it }, onTick = onTick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .testTag(PlayerDialogTags.DRAIN),
         horizontalArrangement = Arrangement.Center,

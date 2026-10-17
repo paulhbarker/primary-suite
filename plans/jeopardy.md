@@ -76,6 +76,7 @@ Phases are `lobby`, `round-intro`, `board`, `clue`, `armed`, `answering`, `dd-wa
   - **Round end:** "Start next round" or "Show final standings".
   - **Game over:** the winner, and New game (reset).
 - **Players** (`PlayersPanel.tsx`): one row per player with a control star, name, "locked out", a phone icon, a button badge with a colour swatch and the button id, and the score (red when negative). The answering player is highlighted, and disconnected players are dimmed. An Add button opens a name dialog. Below the list, "Last button press: #n (name / not assigned) at time".
+- **Drain points** (app only, requested after J4): a red "Drain points" button under the scores opens a full-screen view with one button per player, each taking an equal share of the height and showing the player's name, button colour and live score. Pressing and holding a button drains that player (−5 every 250 ms, the same `adjust-score … drain` ticks as the dialog) until released.
 - **Player dialog:** rename; −step and +step (the step is the clue value, else the round's first value, else 200); hold to drain (−5 every 250 ms while held); set score; give or clear control; assign, cancel or clear the button; move up or down; Remove (confirmed); Done.
 - **Score log:** collapsible, newest first, with time, text and a coloured delta.
 - **Settings** (`SettingsDialog.tsx`):
@@ -152,3 +153,4 @@ All tests run on the JVM, within the limits in `AGENTS.md`.
 | 2026-10-17 | | Plan written from the web host source and the server protocol. |
 | 2026-10-17 | J1 | Protocol, boards API, countdown, and a view model that says hello on every connect and ignores the public view until welcomed. 29 new tests; 181 in total. |
 | 2026-10-17 | J2–J4 | Host shell, lobby, players, player dialog with drain, score log, every game phase, Daily Double wager, image sides and settings. 36 Robolectric UI tests against fixture states; 218 tests in 19 s. Screens checked as rendered images: phone and tablet layouts, board, reading, answering, Daily Double. |
+| 2026-10-17 | extra | Added a Drain points button under the scores, opening a view with one full-height-share hold button per player. Its hold-to-repeat behaviour is shared with the dialog's drain button. 222 tests. |

@@ -517,4 +517,59 @@ class JeopardyHostScreenTest {
         compose.onNodeWithContentDescription(s(R.string.cancel)).performClick()
         assertTrue(sent.isEmpty())
     }
+
+    // --- Drain points ---
+
+    @Test
+    fun `drain points sits beneath the scores, and only with players`() {
+        show(lobby.copy(players = emptyList()))
+        compose.onNodeWithTag(DrainTags.OPEN).assertDoesNotExist()
+
+        state = board
+        val lastScore = compose.onNodeWithTag(JeopardyTags.player("p3")).fetchSemanticsNode().boundsInRoot
+        val button = compose.onNodeWithTag(DrainTags.OPEN).performScrollTo().assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertTrue("drain button should be below the last player", button.top >= lastScore.bottom)
+    }
+
+    @Test
+    fun `drain screen has an evenly sized button per player`() {
+        show(board)
+        click(DrainTags.OPEN)
+
+        val heights = listOf("p1", "p2", "p3").map {
+            compose.onNodeWithTag(DrainTags.player(it)).assertIsDisplayed().fetchSemanticsNode().boundsInRoot.height
+        }
+        assertTrue("heights differ: $heights", heights.max() - heights.min() < 2f)
+        assertTrue("buttons should fill the screen: $heights", heights.first() > 150f)
+    }
+
+    @Test
+    fun `holding a player's drain button drains only that player until released`() {
+        show(board)
+        click(DrainTags.OPEN)
+
+        compose.onNodeWithTag(DrainTags.player("p2")).performTouchInput { down(center) }
+        compose.mainClock.advanceTimeBy(HostCommands.DRAIN_INTERVAL_MS * 3 + 50)
+        compose.onNodeWithTag(DrainTags.player("p2")).performTouchInput { up() }
+        val ticks = sent.size
+        compose.mainClock.advanceTimeBy(1_000)
+
+        assertTrue("expected at least 4 ticks, got $ticks", ticks >= 4)
+        assertEquals(ticks, sent.size)
+        assertTrue(sent.all { it == HostCommands.drainTick("p2") })
+    }
+
+    @Test
+    fun `drain screen shows live scores and closes`() {
+        show(board)
+        click(DrainTags.OPEN)
+        compose.onNodeWithContentDescription("Bob -$200").assertIsDisplayed()
+
+        state = board.copy(players = board.players.map { if (it.id == "p2") it.copy(score = -215) else it })
+        compose.onNodeWithContentDescription("Bob -$215").assertIsDisplayed()
+
+        click(DrainTags.CLOSE)
+        compose.onNodeWithTag(DrainTags.player("p2")).assertDoesNotExist()
+        assertTrue(sent.isEmpty())
+    }
 }

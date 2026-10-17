@@ -285,6 +285,9 @@
     <string name="player_remove_confirm">Remove %1$s from the game?</string>
     <string name="player_done">Done</string>
     <string name="score_log">Score log</string>
+    <string name="drain_points">Drain points</string>
+    <string name="drain_hint">Press and hold a player to drain their points: −5 every ¼ second while held.</string>
+    <string name="drain_close">Close</string>
 
     <string name="settings_rules">Rules (TV defaults)</string>
     <string name="settings_daily_doubles">Daily Doubles</string>
