@@ -1,4 +1,4 @@
-package com.luckytap.app
+package com.primarysuite.app
 
 import android.Manifest
 import android.content.BroadcastReceiver

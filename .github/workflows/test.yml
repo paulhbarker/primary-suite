@@ -36,10 +36,10 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --console=plain
         env:
-          LUCKYTAP_WIFI_SSID: ci-test-network
-          LUCKYTAP_WIFI_PASSWORD: ci-test-password
-          LUCKYTAP_WS_IP: 127.0.0.1
-          LUCKYTAP_WS_PORT: '8080'
+          PRIMARYSUITE_WIFI_SSID: ci-test-network
+          PRIMARYSUITE_WIFI_PASSWORD: ci-test-password
+          PRIMARYSUITE_WS_IP: 127.0.0.1
+          PRIMARYSUITE_WS_PORT: '8080'
 
       - name: Upload test report
         if: failure()

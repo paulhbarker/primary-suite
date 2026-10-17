@@ -1,4 +1,4 @@
-package com.luckytap.app
+package com.primarysuite.app
 
 import android.content.Intent
 import android.nfc.NdefMessage

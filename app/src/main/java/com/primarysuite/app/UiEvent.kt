@@ -1,4 +1,4 @@
-package com.luckytap.app
+package com.primarysuite.app
 
 /**
  * One-shot events emitted by the ViewModel for the Activity to consume.

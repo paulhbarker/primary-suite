@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NFC App"
+rootProject.name = "Primary Suite"
 include(":app")

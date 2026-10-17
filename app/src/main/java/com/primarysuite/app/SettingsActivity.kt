@@ -1,4 +1,4 @@
-package com.luckytap.app
+package com.primarysuite.app
 
 import android.os.Bundle
 import android.widget.EditText

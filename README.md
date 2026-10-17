@@ -1,6 +1,8 @@
-# LuckyTap
+# Primary Suite
 
-An Android NFC companion app for live event games. LuckyTap connects to a dedicated WiFi network and communicates with a backend server over WebSocket to read, write, and manage NFC-tagged game cards in real time.
+An Android admin app for the [Simple Games](https://github.com/paulhbarker/simple-games) live event games. It connects to the event WiFi network and talks to the game server over WebSocket.
+
+Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It is being reworked into a suite with tools for every game; see [`plans/roadmap.md`](plans/roadmap.md) for progress. Today it has the Lucky Tap tools described below.
 
 ## Features
 
@@ -18,7 +20,7 @@ An Android NFC companion app for live event games. LuckyTap connects to a dedica
 
 ```
 ┌──────────────┐      WiFi       ┌──────────────┐    WebSocket     ┌──────────────┐
-│  NFC Tag     │ ◄──── tap ────► │  LuckyTap    │ ◄──────────────► │  Backend     │
+│  NFC Tag     │ ◄──── tap ────► │ Primary Suite│ ◄──────────────► │  Backend     │
 │  (NDEF)      │                 │  Android App │    /ws/lucky-tap  │  Server      │
 └──────────────┘                 └──────────────┘                   └──────────────┘
 ```
@@ -54,8 +56,8 @@ An Android NFC companion app for live event games. LuckyTap connects to a dedica
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/paulhbarker/LuckyTap.git
-cd LuckyTap
+git clone https://github.com/paulhbarker/primary-suite.git
+cd primary-suite
 ```
 
 ### 2. Configure `local.properties`
@@ -67,12 +69,12 @@ Add your environment-specific values to `local.properties` in the project root (
 sdk.dir=/path/to/Android/sdk
 
 # WiFi network the app should auto-connect to
-luckytap.wifi.ssid=YourNetworkName
-luckytap.wifi.password=YourNetworkPassword
+primarysuite.wifi.ssid=YourNetworkName
+primarysuite.wifi.password=YourNetworkPassword
 
 # WebSocket server address
-luckytap.ws.ip=10.0.0.1
-luckytap.ws.port=8080
+primarysuite.ws.ip=10.0.0.1
+primarysuite.ws.port=8080
 ```
 
 These values become compile-time defaults via `BuildConfig`. Users can override them at runtime from the in-app Settings screen.
@@ -110,8 +112,8 @@ To try a debug build on a USB-connected phone from WSL, run `scripts/device-smok
 Release builds have ProGuard minification and resource shrinking enabled. Configure signing in `local.properties`:
 
 ```properties
-luckytap.storeFile=luckytap-release.jks
-luckytap.storePassword=your_keystore_password
+primarysuite.storeFile=primarysuite-release.jks
+primarysuite.storePassword=your_keystore_password
 ```
 
 ## License

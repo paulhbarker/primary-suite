@@ -23,7 +23,7 @@ val ciVersionName: String = project.findProperty("versionName") as String? ?: "1
 val ciVersionCode: Int = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
 
 android {
-    namespace = "com.luckytap.app"
+    namespace = "com.primarysuite.app"
     compileSdk = 36
 
     signingConfigs {
@@ -42,20 +42,20 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.luckytap.app"
+        applicationId = "com.primarysuite.app"
         minSdk = 23
         targetSdk = 35
         versionCode = ciVersionCode
         versionName = ciVersionName
 
         // Inject WiFi / WebSocket defaults from local.properties into BuildConfig
-        buildConfigField("String", "DEFAULT_WIFI_SSID",     "\"${buildProp("luckytap.wifi.ssid",     "LUCKYTAP_WIFI_SSID",     "")}\"")
-        buildConfigField("String", "DEFAULT_WIFI_PASSWORD", "\"${buildProp("luckytap.wifi.password", "LUCKYTAP_WIFI_PASSWORD", "")}\"")
-        buildConfigField("String", "DEFAULT_WS_IP",         "\"${buildProp("luckytap.ws.ip",         "LUCKYTAP_WS_IP",         "10.0.0.1")}\"")
-        buildConfigField("String", "DEFAULT_WS_PORT",       "\"${buildProp("luckytap.ws.port",       "LUCKYTAP_WS_PORT",       "8080")}\"")
+        buildConfigField("String", "DEFAULT_WIFI_SSID",     "\"${buildProp("primarysuite.wifi.ssid",     "PRIMARYSUITE_WIFI_SSID",     "")}\"")
+        buildConfigField("String", "DEFAULT_WIFI_PASSWORD", "\"${buildProp("primarysuite.wifi.password", "PRIMARYSUITE_WIFI_PASSWORD", "")}\"")
+        buildConfigField("String", "DEFAULT_WS_IP",         "\"${buildProp("primarysuite.ws.ip",         "PRIMARYSUITE_WS_IP",         "10.0.0.1")}\"")
+        buildConfigField("String", "DEFAULT_WS_PORT",       "\"${buildProp("primarysuite.ws.port",       "PRIMARYSUITE_WS_PORT",       "8080")}\"")
         // Fail the build immediately if SSID is missing — prevents a silent empty-string APK
-        require(buildProp("luckytap.wifi.ssid", "LUCKYTAP_WIFI_SSID", "").isNotBlank()) {
-            "DEFAULT_WIFI_SSID is blank. Set luckytap.wifi.ssid in local.properties (local) or LUCKYTAP_WIFI_SSID env var (CI)."
+        require(buildProp("primarysuite.wifi.ssid", "PRIMARYSUITE_WIFI_SSID", "").isNotBlank()) {
+            "DEFAULT_WIFI_SSID is blank. Set primarysuite.wifi.ssid in local.properties (local) or PRIMARYSUITE_WIFI_SSID env var (CI)."
         }
     }
 
