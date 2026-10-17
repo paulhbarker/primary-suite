@@ -13,7 +13,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.primarysuite.app.R
+import com.primarysuite.app.catalog.Game
+import com.primarysuite.app.catalog.GameCatalog
 import com.primarysuite.app.games.blockstacker.BlockStackerTags
+import com.primarysuite.app.games.reelrush.ReelRushTags
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.config.serverConfig
 import com.primarysuite.app.core.nfc.NfcHub
@@ -38,7 +41,8 @@ import org.robolectric.annotation.Config
 
 /** Drives the real nav host with fake WiFi, server and settings. */
 @RunWith(AndroidJUnit4::class)
-@Config(qualifiers = "w411dp-h891dp")
+// Tall enough that the whole game list is on screen.
+@Config(qualifiers = "w411dp-h1400dp")
 class NavigationTest {
 
     @get:Rule
@@ -58,6 +62,11 @@ class NavigationTest {
     private val saved = mutableListOf<SettingsSaved>()
     private var wifiRetries = 0
 
+    /** The real catalog plus a game without tools (second, so it's on screen), for the coming-soon screen. */
+    private val games = GameCatalog.games.take(1) +
+        Game("spin-the-wheel", "Spin the Wheel", "No tools yet", hasTools = false) +
+        GameCatalog.games.drop(1)
+
     @Before
     fun setUp() {
         compose.setContent {
@@ -66,8 +75,10 @@ class NavigationTest {
                     viewModelFactory = suiteViewModelFactory(
                         settings, wifi, probe, nfc, AndroidStringProvider(context),
                         socketFactory = { slug, _, _ -> socketSlugs += slug; socket },
+                        games = games,
                         jeopardyBoards = { Result.success(emptyList()) },
                     ),
+                    games = games,
                     onEnableNfc = { nfcSettingsOpened++ },
                     onWifiRetry = { wifiRetries++ },
                     onSettingsSaved = { saved += it },
@@ -122,13 +133,25 @@ class NavigationTest {
 
     @Test
     fun `a game without tools shows coming soon, and back returns home`() {
-        compose.onNodeWithTag(HomeTags.game("reel-rush")).performClick()
+        compose.onNodeWithTag(HomeTags.game("spin-the-wheel")).performClick()
 
-        compose.onNodeWithText(s(R.string.coming_soon_body, "Reel Rush")).assertIsDisplayed()
+        compose.onNodeWithText(s(R.string.coming_soon_body, "Spin the Wheel")).assertIsDisplayed()
         assertEquals(emptyList<String>(), socketSlugs)
 
         pressBack()
         assertOnHome()
+    }
+
+    @Test
+    fun `Reel Rush opens its admin on its own socket`() {
+        compose.onNodeWithTag(HomeTags.game("reel-rush")).performClick()
+
+        compose.onNodeWithTag(ReelRushTags.CONNECTING).assertExists()
+        assertEquals(listOf("reel-rush"), socketSlugs)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
     }
 
     @Test

@@ -195,7 +195,7 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 
 1. Jeopardy! (host controls, score adjustments). See [`plans/jeopardy.md`](jeopardy.md).
 2. State Switch (game type, timeout, move limit, reset). See [`plans/state-switch.md`](state-switch.md).
-3. Reel Rush
+3. Reel Rush. See [`plans/reel-rush.md`](reel-rush.md).
 4. Block Stacker. See [`plans/block-stacker.md`](block-stacker.md).
 5. Button Debugger
 6. Roles: limit the list to the games a user may administer. This needs a server-side source of truth.

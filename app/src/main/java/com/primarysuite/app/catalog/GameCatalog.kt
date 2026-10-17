@@ -17,12 +17,13 @@ object GameCatalog {
     const val JEOPARDY = "jeopardy"
     const val STATE_SWITCH = "state-switch"
     const val BLOCK_STACKER = "block-stacker"
+    const val REEL_RUSH = "reel-rush"
 
     val games: List<Game> = listOf(
         Game(LUCKY_TAP, "Lucky Tap", "NFC check-in, check-out and draws", hasTools = true),
         Game(JEOPARDY, "Jeopardy!", "Host the game: board, buzzers and scores", hasTools = true),
         Game(STATE_SWITCH, "State Switch", "Game type, timeout and move limit", hasTools = true),
-        Game("reel-rush", "Reel Rush", "Rounds and scoring", hasTools = false),
+        Game(REEL_RUSH, "Reel Rush", "Rounds and scoring", hasTools = true),
         Game(BLOCK_STACKER, "Block Stacker", "Speed and levels", hasTools = true),
         Game("button-debug", "Button Debugger", "Test the GPIO buttons and LEDs", hasTools = false),
     )

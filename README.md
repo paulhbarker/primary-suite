@@ -6,9 +6,10 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 
 ## Features
 
-- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap, Jeopardy!, State Switch and Block Stacker have tools; the others are coming.
+- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap, Jeopardy!, State Switch, Reel Rush and Block Stacker have tools; the others are coming.
 - **Jeopardy! host**: the web host controller on the phone: lobby, board, clues with a hidden-until-peeked response, buzzers, judging, Daily Double wagers, players (scores, control, buttons, drain), undo and settings. The phone vibrates when someone buzzes in.
 - **State Switch admin**: game type, button timeout and limit, Reset Actuations and Reset All, as on the web, plus a Switch button that flips the display like the physical button.
+- **Reel Rush admin**: lobby, start, close and replay rounds, end and reset (confirmed), players with remove, round results and final standings, and every setting with local range checks.
 - **Block Stacker admin**: max levels, speeds and game enabled (saved together, as on the web), a test button press, game status and a live message log.
 - **Lucky Tap scanner**: read, check in and check out NFC cards, sent to the server as they're tapped, or write a number (1–100) to a blank card.
 - **Lucky Tap game**: live checked-in cards with each card's odds and this round's scans, the last draw's winners, winners per draw, Check in all, Scan all, Clear scans and Reset game.
@@ -39,6 +40,7 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 | **HomeViewModel** | `ui/home/` | WiFi and game server status, the game list |
 | **SettingsViewModel** | `ui/settings/` | WiFi and server overrides with validation |
 | **GameCatalog** | `catalog/GameCatalog.kt` | The games the suite lists, and which have tools |
+| **ReelRushScreen / ReelRushViewModel** | `games/reelrush/` | Reel Rush admin over `/ws/reel-rush` |
 | **BlockStackerScreen / BlockStackerViewModel** | `games/blockstacker/` | Block Stacker admin over `/ws/block-stacker` |
 | **StateSwitchScreen / StateSwitchViewModel** | `games/stateswitch/` | State Switch admin over `/ws/state-switch` |
 | **JeopardyHostScreen / JeopardyHostViewModel** | `games/jeopardy/` | Jeopardy! host controller over `/ws/jeopardy` |

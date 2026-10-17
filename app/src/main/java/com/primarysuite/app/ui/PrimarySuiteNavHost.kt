@@ -30,6 +30,8 @@ import com.primarysuite.app.games.jeopardy.JeopardyBoardsApi
 import com.primarysuite.app.games.jeopardy.JeopardyHostRoute
 import com.primarysuite.app.games.jeopardy.JeopardyHostViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapRoute
+import com.primarysuite.app.games.reelrush.ReelRushRoute
+import com.primarysuite.app.games.reelrush.ReelRushViewModel
 import com.primarysuite.app.games.stateswitch.StateSwitchRoute
 import com.primarysuite.app.games.stateswitch.StateSwitchViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapViewModel
@@ -84,6 +86,9 @@ fun suiteViewModelFactory(
     }
     initializer {
         BlockStackerViewModel(wifi, { scope, canConnect -> socketFactory(BlockStackerViewModel.GAME_SLUG, scope, canConnect) })
+    }
+    initializer {
+        ReelRushViewModel(wifi) { scope, canConnect -> socketFactory(ReelRushViewModel.GAME_SLUG, scope, canConnect) }
     }
 }
 
@@ -170,6 +175,10 @@ fun PrimarySuiteNavHost(
                 game.slug == GameCatalog.BLOCK_STACKER -> {
                     val vm: BlockStackerViewModel = viewModel(factory = viewModelFactory)
                     BlockStackerRoute(vm, onBack = onBack)
+                }
+                game.slug == GameCatalog.REEL_RUSH -> {
+                    val vm: ReelRushViewModel = viewModel(factory = viewModelFactory)
+                    ReelRushRoute(vm, onBack = onBack)
                 }
                 else -> ComingSoonScreen(game, onBack = onBack)
             }
