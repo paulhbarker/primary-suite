@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="buttondebug_title">Button debugger</string>
+    <string name="buttondebug_description">Every edge the kernel reports, what the debouncer made of it, and whether the press reached the games.</string>
+    <string name="buttondebug_description_box">GPIO box on %1$s. Every edge the kernel reports, what the debouncer made of it, and whether the press reached the games.</string>
+    <string name="buttondebug_connected">Connected</string>
+    <string name="buttondebug_disconnected">Disconnected</string>
+    <string name="buttondebug_rtt">RTT %1$dms</string>
+
+    <string name="buttondebug_banner_offline">Not connected to the game server. Retrying…</string>
+    <string name="buttondebug_banner_no_box">GPIO box not running: %1$s. Wi-Fi buttons still show up below.</string>
+    <string name="buttondebug_banner_level_err">Reading the switch lines failed: %1$s</string>
+    <plurals name="buttondebug_banner_disabled">
+        <item quantity="one">A game has button %1$s disabled. Presses on a disabled button are dropped on purpose.</item>
+        <item quantity="other">A game has buttons %1$s disabled. Presses on a disabled button are dropped on purpose.</item>
+    </plurals>
+    <string name="buttondebug_enable_all_short">Enable all</string>
+    <string name="buttondebug_banner_active_games">Also open: %1$s. Those games get these presses too and can disable buttons or turn LEDs off. Close them for a clean test.</string>
+    <string name="buttondebug_banner_dropped">The debugger missed %1$d edges because the server was busy (the presses still went through). A line producing that many edges is noisy.</string>
+
+    <plurals name="buttondebug_summary_problems">
+        <item quantity="one">%1$d problem found. Details on each button.</item>
+        <item quantity="other">%1$d problems found. Details on each button.</item>
+    </plurals>
+    <plurals name="buttondebug_summary_ok">
+        <item quantity="one">No problems in %1$d press.</item>
+        <item quantity="other">No problems in %1$d presses.</item>
+    </plurals>
+    <string name="buttondebug_summary_empty">Press the buttons. Every edge shows up here.</string>
+
+    <string name="buttondebug_color_cd">Which colour is this button?</string>
+    <string name="buttondebug_tile_ids">#%1$d · GPIO%2$d / %3$d</string>
+    <string name="buttondebug_line">Line</string>
+    <string name="buttondebug_line_low">LOW</string>
+    <string name="buttondebug_line_high">HIGH</string>
+    <string name="buttondebug_debounced">Debounced</string>
+    <string name="buttondebug_held">held</string>
+    <string name="buttondebug_up">up</string>
+    <string name="buttondebug_led">LED</string>
+    <string name="buttondebug_on">on</string>
+    <string name="buttondebug_off">off</string>
+    <string name="buttondebug_badge_disabled">disabled by game</string>
+    <string name="buttondebug_badge_stuck">STUCK</string>
+    <string name="buttondebug_badge_healthy">healthy</string>
+
+    <string name="buttondebug_stat_sent">Sent / reached games</string>
+    <string name="buttondebug_stat_late">Late presses (max wait)</string>
+    <string name="buttondebug_stat_lost">Lost press / release</string>
+    <string name="buttondebug_stat_noise">Noise bursts</string>
+    <string name="buttondebug_stat_short">Short presses</string>
+    <string name="buttondebug_stat_dropped">Dropped (disabled)</string>
+    <string name="buttondebug_stat_edges">Edges / kernel dropped</string>
+    <string name="buttondebug_stat_press_bounce">Bounce, press (max)</string>
+    <string name="buttondebug_stat_release_bounce">Bounce, release (max)</string>
+    <string name="buttondebug_stat_hold">Hold (last / shortest)</string>
+    <string name="buttondebug_stat_lag">Kernel→server avg/max</string>
+    <string name="buttondebug_stat_hub">Kernel→games avg/max</string>
+
+    <string name="buttondebug_wave_press">Last press</string>
+    <string name="buttondebug_wave_release">Last release</string>
+    <string name="buttondebug_wave_noise">Last noise</string>
+    <string name="buttondebug_wave_none">no data</string>
+
+    <string name="buttondebug_leds">LEDs</string>
+    <string name="buttondebug_led_game">Games control</string>
+    <string name="buttondebug_led_follow">Follow press</string>
+    <string name="buttondebug_led_on">All on</string>
+    <string name="buttondebug_led_off">All off</string>
+    <string name="buttondebug_chase">Chase 1→4</string>
+    <string name="buttondebug_leds_note">Test modes only change the LEDs; games go back in control when you close this page.</string>
+    <string name="buttondebug_debounce">Debounce</string>
+    <string name="buttondebug_debounce_now">now %1$s</string>
+    <string name="buttondebug_debounce_placeholder">ms</string>
+    <string name="buttondebug_debounce_set">Set</string>
+    <string name="buttondebug_debounce_note">How long a release must stay quiet before the next press counts. Until restart only; make it stick with BUTTON_BOX_DEBOUNCE_MS.</string>
+    <string name="buttondebug_session">Session</string>
+    <string name="buttondebug_reset_stats">Reset stats</string>
+    <string name="buttondebug_enable_all">Enable all buttons</string>
+    <string name="buttondebug_session_note">Reset clears the counters for every open debugger page.</string>
+
+    <string name="buttondebug_wifi_title">Wi-Fi buttons</string>
+    <string name="buttondebug_wifi_button">Button #%1$d</string>
+    <string name="buttondebug_wifi_presses">Presses</string>
+    <string name="buttondebug_wifi_lost">Lost (seq gaps)</string>
+    <string name="buttondebug_wifi_rssi">RSSI</string>
+    <string name="buttondebug_wifi_rssi_value">%1$d dBm</string>
+    <string name="buttondebug_wifi_from">From</string>
+
+    <string name="buttondebug_log_title">Edges</string>
+    <string name="buttondebug_log_hint">newest first · last %1$d</string>
+    <string name="buttondebug_log_empty">Nothing yet.</string>
+    <string name="buttondebug_log_wifi">Wi-Fi</string>
+    <string name="buttondebug_log_press">press</string>
+    <string name="buttondebug_log_gap">since last edge %1$s</string>
+    <string name="buttondebug_log_lag">lag %1$s</string>
+    <string name="buttondebug_log_burst">burst %1$s</string>
+    <string name="buttondebug_log_lost">+%1$d lost</string>
+
+    <string name="buttondebug_howto_title">A full check</string>
+    <string name="buttondebug_howto_1">Close any other game screens, then Reset stats.</string>
+    <string name="buttondebug_howto_2">Chase 1→4: the LEDs should light %1$s. If the order is off, fix the colour on each tile (or the wiring).</string>
+    <string name="buttondebug_howto_order_unknown">in id order</string>
+    <string name="buttondebug_howto_3">Tap each button 20 times: slow, then as fast as you can. Each tile should read 20, with accepted equal to reached games, and lost, noise and short counts at 0.</string>
+    <string name="buttondebug_howto_4">Hold each for 2 seconds, then let go. The count goes up by exactly one.</string>
+    <string name="buttondebug_howto_5">Switch the LEDs to Follow press and tap. The LED should light the instant the button goes down.</string>
+    <string name="buttondebug_howto_6">Wiggle each button\'s wires while it\'s untouched. Any edge in the log means a loose connection.</string>
+    <string name="buttondebug_howto_7">Watch Bounce, release (max). If it gets near half the debounce setting, raise the debounce.</string>
+</resources>

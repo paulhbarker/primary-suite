@@ -1,0 +1,31 @@
+{
+  "box": true,
+  "chip": "gpiochip0",
+  "buttons": [
+    {"index": 0, "id": 4, "switchPin": 5, "ledPin": 6},
+    {"index": 1, "id": 3, "switchPin": 13, "ledPin": 19}
+  ],
+  "status": {
+    "down": [false, false],
+    "levels": [false, false],
+    "enabled": [true, false],
+    "leds": [true, false],
+    "ledMode": "game",
+    "quietMs": 20,
+    "stuck": [false, false],
+    "activeGames": ["lucky-tap"],
+    "droppedEdges": 0
+  },
+  "events": [
+    {"button": 0, "id": 4, "pin": 5, "kind": "edge", "pressed": true, "tsUs": 1000000, "gapUs": -1, "lagUs": 120, "verdict": "press", "seq": 7},
+    {"button": 0, "id": 4, "pin": 5, "kind": "edge", "pressed": false, "tsUs": 1000300, "gapUs": 300, "lagUs": 90, "kernelGap": 2, "verdict": "bounce"},
+    {"button": 0, "id": 4, "pin": 5, "kind": "settle", "pressed": true, "tsUs": 1020300, "gapUs": 20000, "lagUs": -1, "burstUs": 300, "verdict": "holding"},
+    {"button": 0, "id": 4, "pin": 5, "kind": "edge", "pressed": false, "tsUs": 1500000, "gapUs": 479700, "lagUs": 100, "verdict": "pending"},
+    {"button": 0, "id": 4, "pin": 5, "kind": "settle", "pressed": false, "tsUs": 1520000, "gapUs": 20000, "lagUs": -1, "burstUs": 0, "verdict": "release"}
+  ],
+  "presses": [
+    {"id": 4, "seq": 7, "source": "box", "hubUs": 450, "atMs": 1700000000000},
+    {"id": 4, "seq": 6, "source": "box", "hubUs": 400, "atMs": 1699999990000},
+    {"id": 9, "seq": 3, "source": "wifi", "remote": "192.168.4.20:5555", "hubUs": -1, "rssi": -61, "sentMs": 1234, "freeHeap": 150000, "atMs": 1700000001000}
+  ]
+}
