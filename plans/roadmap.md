@@ -194,7 +194,7 @@ Decisions and findings:
 Each game gets its own plan in `plans/<game>.md` before work starts, covering which of the web admin's functions belong on the phone, its message protocol, and its tests. Proposed order:
 
 1. Jeopardy! (host controls, score adjustments). See [`plans/jeopardy.md`](jeopardy.md).
-2. State Switch (game type, timeout, move limit, reset)
+2. State Switch (game type, timeout, move limit, reset). See [`plans/state-switch.md`](state-switch.md).
 3. Reel Rush
 4. Block Stacker
 5. Button Debugger

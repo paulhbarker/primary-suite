@@ -98,7 +98,7 @@ class JeopardyHostScreenTest {
         show(board)
         compose.onNodeWithTag(JeopardyTags.PHASE).assertIsDisplayed()
         compose.onNodeWithText(s(R.string.phase_board)).assertIsDisplayed()
-        compose.onNodeWithText(s(R.string.jeopardy_offline)).assertIsDisplayed()
+        compose.onNodeWithText(s(R.string.game_offline)).assertIsDisplayed()
 
         click(JeopardyTags.UNDO)
         assertEquals(listOf(HostCommands.undo()), sent)

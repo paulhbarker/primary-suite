@@ -15,11 +15,12 @@ data class Game(
 object GameCatalog {
     const val LUCKY_TAP = "lucky-tap"
     const val JEOPARDY = "jeopardy"
+    const val STATE_SWITCH = "state-switch"
 
     val games: List<Game> = listOf(
         Game(LUCKY_TAP, "Lucky Tap", "NFC check-in, check-out and draws", hasTools = true),
         Game(JEOPARDY, "Jeopardy!", "Host the game: board, buzzers and scores", hasTools = true),
-        Game("state-switch", "State Switch", "Game type, timeout and move limit", hasTools = false),
+        Game(STATE_SWITCH, "State Switch", "Game type, timeout and move limit", hasTools = true),
         Game("reel-rush", "Reel Rush", "Rounds and scoring", hasTools = false),
         Game("block-stacker", "Block Stacker", "Speed and levels", hasTools = false),
         Game("button-debug", "Button Debugger", "Test the GPIO buttons and LEDs", hasTools = false),

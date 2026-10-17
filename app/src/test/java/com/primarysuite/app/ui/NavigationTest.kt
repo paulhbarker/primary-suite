@@ -131,6 +131,18 @@ class NavigationTest {
     }
 
     @Test
+    fun `State Switch opens its admin on its own socket`() {
+        compose.onNodeWithTag(HomeTags.game("state-switch")).performClick()
+
+        compose.onNodeWithText(s(R.string.state_switch_connecting)).assertIsDisplayed()
+        assertEquals(listOf("state-switch"), socketSlugs)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
+    }
+
+    @Test
     fun `Jeopardy opens the host controller on its own socket`() {
         compose.onNodeWithTag(HomeTags.game("jeopardy")).performClick()
 

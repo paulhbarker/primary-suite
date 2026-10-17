@@ -6,8 +6,9 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 
 ## Features
 
-- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap and Jeopardy! have tools; the others are coming.
+- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap, Jeopardy! and State Switch have tools; the others are coming.
 - **Jeopardy! host**: the web host controller on the phone: lobby, board, clues with a hidden-until-peeked response, buzzers, judging, Daily Double wagers, players (scores, control, buttons, drain), undo and settings. The phone vibrates when someone buzzes in.
+- **State Switch admin**: game type, button timeout and limit, Reset Actuations and Reset All, as on the web, plus a Switch button that flips the display like the physical button.
 - **Lucky Tap scanner**: read, check in and check out NFC cards, sent to the server as they're tapped, or write a number (1–100) to a blank card.
 - **Lucky Tap game**: live checked-in cards with each card's odds and this round's scans, the last draw's winners, winners per draw, Check in all, Scan all, Clear scans and Reset game.
 - **Automatic WiFi**: joins the event network on launch and reconnects to the server with backoff.
@@ -37,6 +38,7 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 | **HomeViewModel** | `ui/home/` | WiFi and game server status, the game list |
 | **SettingsViewModel** | `ui/settings/` | WiFi and server overrides with validation |
 | **GameCatalog** | `catalog/GameCatalog.kt` | The games the suite lists, and which have tools |
+| **StateSwitchScreen / StateSwitchViewModel** | `games/stateswitch/` | State Switch admin over `/ws/state-switch` |
 | **JeopardyHostScreen / JeopardyHostViewModel** | `games/jeopardy/` | Jeopardy! host controller over `/ws/jeopardy` |
 | **LuckyTapScreen / LuckyTapViewModel** | `games/luckytap/` | Lucky Tap scanning station: read, check-in/out, write, reset, clear |
 | **WebSocketManager** | `core/net/WebSocketManager.kt` | One game's socket (`/ws/{slug}`): connect, send, receive, reconnect with backoff |

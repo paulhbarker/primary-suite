@@ -28,6 +28,8 @@ import com.primarysuite.app.games.jeopardy.JeopardyBoardsApi
 import com.primarysuite.app.games.jeopardy.JeopardyHostRoute
 import com.primarysuite.app.games.jeopardy.JeopardyHostViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapRoute
+import com.primarysuite.app.games.stateswitch.StateSwitchRoute
+import com.primarysuite.app.games.stateswitch.StateSwitchViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapViewModel
 import kotlinx.coroutines.CoroutineScope
 import com.primarysuite.app.core.wifi.WifiConnector
@@ -74,6 +76,9 @@ fun suiteViewModelFactory(
             boardsApi = jeopardyBoards,
             onBuzz = onBuzz,
         )
+    }
+    initializer {
+        StateSwitchViewModel(wifi) { scope, canConnect -> socketFactory(StateSwitchViewModel.GAME_SLUG, scope, canConnect) }
     }
 }
 
@@ -152,6 +157,10 @@ fun PrimarySuiteNavHost(
                 game.slug == GameCatalog.JEOPARDY -> {
                     val vm: JeopardyHostViewModel = viewModel(factory = viewModelFactory)
                     JeopardyHostRoute(vm, serverBase = serverBase(), onBack = onBack)
+                }
+                game.slug == GameCatalog.STATE_SWITCH -> {
+                    val vm: StateSwitchViewModel = viewModel(factory = viewModelFactory)
+                    StateSwitchRoute(vm, onBack = onBack)
                 }
                 else -> ComingSoonScreen(game, onBack = onBack)
             }

@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.primarysuite.app.R
+import com.primarysuite.app.core.ui.OfflineBadge
 import com.primarysuite.app.core.protocol.GameMessage
 import com.primarysuite.app.ui.theme.AppColors
 
@@ -139,7 +140,7 @@ fun JeopardyHostScreen(
                     actions = {
                         if (state != null) {
                             PhaseBadge(state.phase)
-                            if (!connected) OfflineBadge()
+                            if (!connected) OfflineBadge(stringResource(R.string.game_offline))
                             IconButton(onClick = { send(HostCommands.undo()) }, enabled = state.canUndo, modifier = Modifier.testTag(JeopardyTags.UNDO)) {
                                 Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = stringResource(R.string.jeopardy_undo))
                             }
@@ -244,17 +245,6 @@ private fun PhaseBadge(phase: Phase) {
             .padding(horizontal = 8.dp, vertical = 3.dp)
             .testTag(JeopardyTags.PHASE),
         color = if (armed) Color.White else AppColors.OnSurface,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-    )
-}
-
-@Composable
-private fun OfflineBadge() {
-    Text(
-        stringResource(R.string.jeopardy_offline),
-        modifier = Modifier.padding(start = 4.dp).background(AppColors.Error, RoundedCornerShape(10.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
-        color = Color.White,
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
     )

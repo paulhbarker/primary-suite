@@ -24,8 +24,8 @@ class GameCatalogTest {
     }
 
     @Test
-    fun `Lucky Tap and Jeopardy have tools so far`() {
-        assertEquals(listOf(GameCatalog.LUCKY_TAP, GameCatalog.JEOPARDY), GameCatalog.games.filter { it.hasTools }.map { it.slug })
+    fun `Lucky Tap, Jeopardy and State Switch have tools so far`() {
+        assertEquals(listOf(GameCatalog.LUCKY_TAP, GameCatalog.JEOPARDY, GameCatalog.STATE_SWITCH), GameCatalog.games.filter { it.hasTools }.map { it.slug })
     }
 
     @Test

@@ -164,7 +164,7 @@
     <string name="jeopardy_title">Jeopardy!</string>
     <string name="jeopardy_connecting">Connecting to the game server…</string>
     <string name="jeopardy_loading">Loading…</string>
-    <string name="jeopardy_offline">Offline</string>
+    <string name="game_offline">Offline</string>
     <string name="jeopardy_undo">Undo last action</string>
     <string name="jeopardy_settings">Game settings</string>
     <string name="jeopardy_more">More options</string>
@@ -314,4 +314,19 @@
     <string name="settings_read_min">Minimum reading time (s)</string>
     <string name="settings_audio">Audio (plays on the display)</string>
     <string name="settings_volume">Sound effects volume</string>
+    <!-- State Switch -->
+    <string name="state_switch_title">State Switch</string>
+    <string name="state_switch_connecting">Connecting…</string>
+    <string name="state_switch_switch">Switch</string>
+    <string name="state_switch_cooling_down">Cooling down…</string>
+    <string name="state_switch_limit_reached">Limit reached</string>
+    <string name="state_switch_game">Game selection</string>
+    <string name="state_switch_timeout">Button timeout</string>
+    <string name="state_switch_seconds">%1$s sec</string>
+    <string name="state_switch_enforce_limit">Enforce limit</string>
+    <string name="state_switch_limit">Button limit</string>
+    <string name="state_switch_reset_actuations">Reset actuations</string>
+    <string name="state_switch_reset_all">Reset all</string>
+    <string name="state_switch_reset_all_title">Reset all?</string>
+    <string name="state_switch_reset_all_message">This clears the press count, puts the display back to its first side, and sets every setting back to its default (Fast / Slow, 2.5 sec timeout, no limit).</string>
 </resources>
