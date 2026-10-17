@@ -23,6 +23,8 @@ import com.primarysuite.app.core.net.gameSocket
 import com.primarysuite.app.core.nfc.NfcHub
 import com.primarysuite.app.core.ui.StringProvider
 import com.primarysuite.app.core.config.serverConfig
+import com.primarysuite.app.games.blockstacker.BlockStackerRoute
+import com.primarysuite.app.games.blockstacker.BlockStackerViewModel
 import com.primarysuite.app.games.jeopardy.HttpJeopardyBoardsApi
 import com.primarysuite.app.games.jeopardy.JeopardyBoardsApi
 import com.primarysuite.app.games.jeopardy.JeopardyHostRoute
@@ -79,6 +81,9 @@ fun suiteViewModelFactory(
     }
     initializer {
         StateSwitchViewModel(wifi) { scope, canConnect -> socketFactory(StateSwitchViewModel.GAME_SLUG, scope, canConnect) }
+    }
+    initializer {
+        BlockStackerViewModel(wifi, { scope, canConnect -> socketFactory(BlockStackerViewModel.GAME_SLUG, scope, canConnect) })
     }
 }
 
@@ -161,6 +166,10 @@ fun PrimarySuiteNavHost(
                 game.slug == GameCatalog.STATE_SWITCH -> {
                     val vm: StateSwitchViewModel = viewModel(factory = viewModelFactory)
                     StateSwitchRoute(vm, onBack = onBack)
+                }
+                game.slug == GameCatalog.BLOCK_STACKER -> {
+                    val vm: BlockStackerViewModel = viewModel(factory = viewModelFactory)
+                    BlockStackerRoute(vm, onBack = onBack)
                 }
                 else -> ComingSoonScreen(game, onBack = onBack)
             }

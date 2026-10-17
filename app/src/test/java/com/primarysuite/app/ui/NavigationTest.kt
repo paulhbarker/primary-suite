@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.primarysuite.app.R
+import com.primarysuite.app.games.blockstacker.BlockStackerTags
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.config.serverConfig
 import com.primarysuite.app.core.nfc.NfcHub
@@ -128,6 +129,18 @@ class NavigationTest {
 
         pressBack()
         assertOnHome()
+    }
+
+    @Test
+    fun `Block Stacker opens its admin on its own socket`() {
+        compose.onNodeWithTag(HomeTags.game("block-stacker")).performClick()
+
+        compose.onNodeWithTag(BlockStackerTags.CONNECTING).assertExists()
+        assertEquals(listOf("block-stacker"), socketSlugs)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
     }
 
     @Test
