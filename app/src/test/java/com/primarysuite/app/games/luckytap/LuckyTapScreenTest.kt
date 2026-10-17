@@ -17,9 +17,11 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.primarysuite.app.R
+import com.primarysuite.app.core.net.SocketEvent
 import com.primarysuite.app.core.net.WebSocketConnectionState
 import com.primarysuite.app.core.nfc.NfcHub
 import com.primarysuite.app.core.nfc.NfcState
+import com.primarysuite.app.core.protocol.GameMessage
 import com.primarysuite.app.core.ui.AndroidStringProvider
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.testing.FakeGameConnection
@@ -79,12 +81,24 @@ class LuckyTapScreenTest {
         settle()
     }
 
+    private fun openGameTab() {
+        compose.onNodeWithTag(LuckyTapTags.TAB_GAME).performClick()
+        settle()
+    }
+
+    private fun receive(json: String) {
+        socket.events.tryEmit(SocketEvent.Received(GameMessage.decode(json)!!))
+        settle()
+    }
+
+    private val fullState = """{"type":"lucky-tap-full-state","payload":{"checkedInNumbers":[3,7],"likelihoods":{"3":100,"7":75},"currentCollection":[7,7],"numWinners":2}}"""
+
     private fun assertStatus(text: String) =
         compose.onNodeWithTag(LuckyTapTags.STATUS).performScrollTo().assertTextEquals(text)
 
     @Test
-    fun `scanning and admin need every connection, writing only needs nfc`() {
-        listOf(LuckyTapTags.READ, LuckyTapTags.CHECK_IN, LuckyTapTags.CHECK_OUT, LuckyTapTags.CLEAR, LuckyTapTags.RESET)
+    fun `scanning needs every connection, writing only needs nfc`() {
+        listOf(LuckyTapTags.READ, LuckyTapTags.CHECK_IN, LuckyTapTags.CHECK_OUT)
             .forEach { compose.onNodeWithTag(it).assertIsNotEnabled() }
 
         nfc.setState(NfcState.AVAILABLE)
@@ -95,9 +109,22 @@ class LuckyTapScreenTest {
         assertStatus(s(R.string.status_waiting_for_connections))
 
         goOnline()
-        listOf(LuckyTapTags.READ, LuckyTapTags.CHECK_IN, LuckyTapTags.CHECK_OUT, LuckyTapTags.CLEAR, LuckyTapTags.RESET)
+        listOf(LuckyTapTags.READ, LuckyTapTags.CHECK_IN, LuckyTapTags.CHECK_OUT)
             .forEach { compose.onNodeWithTag(it).assertIsEnabled() }
         assertStatus(s(R.string.status_idle))
+    }
+
+    @Test
+    fun `game admin needs the server but not nfc`() {
+        openGameTab()
+        compose.onNodeWithTag(LuckyTapTags.CHECK_IN_ALL).assertIsNotEnabled()
+
+        wifi.connectionState.value = WifiConnectionState.CONNECTED
+        socket.connectionState.value = WebSocketConnectionState.CONNECTED
+        settle()
+
+        listOf(LuckyTapTags.CHECK_IN_ALL, LuckyTapTags.SCAN_ALL, LuckyTapTags.CLEAR, LuckyTapTags.RESET)
+            .forEach { compose.onNodeWithTag(it).performScrollTo().assertIsEnabled() }
     }
 
     @Test
@@ -186,6 +213,7 @@ class LuckyTapScreenTest {
     @Test
     fun `reset game asks first, and only sends when confirmed`() {
         goOnline()
+        openGameTab()
         compose.onNodeWithTag(LuckyTapTags.RESET).performScrollTo().performClick()
         compose.onNodeWithText(s(R.string.confirm_reset_title)).assertIsDisplayed()
         assertTrue(socket.sent.isEmpty())
@@ -199,6 +227,7 @@ class LuckyTapScreenTest {
     @Test
     fun `clear scans can be cancelled`() {
         goOnline()
+        openGameTab()
         compose.onNodeWithTag(LuckyTapTags.CLEAR).performScrollTo().performClick()
         compose.onNodeWithText(s(R.string.confirm_clear_body)).assertIsDisplayed()
 
@@ -212,5 +241,97 @@ class LuckyTapScreenTest {
     fun `the toolbar back arrow leaves the screen`() {
         compose.onNodeWithContentDescription(s(R.string.cd_back)).performClick()
         assertEquals(1, backs)
+    }
+
+    // --- Game tab ---
+
+    @Test
+    fun `shows checked-in cards with odds and this round's scans`() {
+        goOnline()
+        openGameTab()
+        compose.onNodeWithText(s(R.string.game_waiting_for_state)).assertIsDisplayed()
+
+        receive(fullState)
+
+        compose.onNodeWithText(s(R.string.game_waiting_for_state)).assertDoesNotExist()
+        compose.onNodeWithContentDescription(s(R.string.cd_card_odds, 3, 100, 0)).assertIsDisplayed()
+        compose.onNodeWithContentDescription(s(R.string.cd_card_odds, 7, 75, 2)).assertIsDisplayed()
+        compose.onNodeWithTag(LuckyTapTags.NUM_WINNERS).assertTextEquals("2")
+    }
+
+    @Test
+    fun `the stepper changes winners per draw`() {
+        goOnline()
+        openGameTab()
+        receive(fullState)
+
+        compose.onNodeWithTag(LuckyTapTags.MORE_WINNERS).performClick()
+        compose.onNodeWithTag(LuckyTapTags.FEWER_WINNERS).performClick()
+
+        assertEquals(listOf(3, 1), socket.sent.map { it.payload.getInt("number") })
+        assertEquals(setOf("admin-set-num-winners"), socket.sent.map { it.type }.toSet())
+    }
+
+    @Test
+    fun `check in all asks first`() {
+        goOnline()
+        openGameTab()
+
+        compose.onNodeWithTag(LuckyTapTags.CHECK_IN_ALL).performScrollTo().performClick()
+        compose.onNodeWithText(s(R.string.confirm_check_in_all_title)).assertIsDisplayed()
+        compose.onNodeWithTag(LuckyTapTags.CONFIRM).performClick()
+
+        assertEquals(listOf("admin-check-in-all"), socket.sent.map { it.type })
+    }
+
+    @Test
+    fun `scan all can be cancelled`() {
+        goOnline()
+        openGameTab()
+
+        compose.onNodeWithTag(LuckyTapTags.SCAN_ALL).performScrollTo().performClick()
+        compose.onNodeWithText(s(R.string.confirm_scan_all_title)).assertIsDisplayed()
+        compose.onNodeWithText(s(R.string.cancel)).performClick()
+
+        assertTrue(socket.sent.isEmpty())
+    }
+
+    @Test
+    fun `refresh asks for the full state`() {
+        goOnline()
+        openGameTab()
+
+        compose.onNodeWithTag(LuckyTapTags.REFRESH).performClick()
+
+        assertEquals(listOf("admin-get-full-state"), socket.sent.map { it.type })
+    }
+
+    @Test
+    fun `during a draw the admin controls wait, then the winners show`() {
+        goOnline()
+        openGameTab()
+        receive(fullState)
+
+        receive("""{"type":"start-tumbler-animation","payload":{"options":[3,7]}}""")
+        compose.onNodeWithTag(LuckyTapTags.DRAW_STATUS).assertTextEquals(s(R.string.game_drawing))
+        listOf(LuckyTapTags.REFRESH, LuckyTapTags.MORE_WINNERS, LuckyTapTags.CHECK_IN_ALL, LuckyTapTags.RESET)
+            .forEach { compose.onNodeWithTag(it).performScrollTo().assertIsNotEnabled() }
+
+        receive("""{"type":"selected-number-final","payload":{"numbers":[7]}}""")
+        compose.onNodeWithTag(LuckyTapTags.DRAW_STATUS).performScrollTo().assertTextEquals(s(R.string.game_last_winners, "7"))
+        compose.onNodeWithContentDescription(s(R.string.cd_card_odds, 7, 50, 0)).assertExists()
+        compose.onNodeWithTag(LuckyTapTags.RESET).performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `a failed draw is shown`() {
+        goOnline()
+        openGameTab()
+        receive(fullState)
+
+        receive("""{"type":"draw-error","payload":{"message":"No cards activated for this round!"}}""")
+
+        compose.onNodeWithTag(LuckyTapTags.DRAW_STATUS)
+            .assertTextEquals(s(R.string.game_last_draw_failed, "No cards activated for this round!"))
     }
 }

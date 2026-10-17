@@ -6,15 +6,12 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 
 ## Features
 
-- **NFC Read & Write** — Read numbered NFC tags (NDEF text records) or write numbers (1–100) to blank tags
-- **Check-In / Check-Out** — Scan NFC tags to register player check-ins and check-outs, reported instantly to the server
-- **Live WebSocket Connection** — Sends scan events (`card-scanned`, `nfc-check-in`, `nfc-check-out`) to a backend server with automatic reconnection and exponential backoff
-- **Automatic WiFi Management** — Connects to a configurable target WiFi network on launch, with retry logic and support for both legacy (API 23–28) and modern (API 29+) WiFi APIs
-- **Connection Status Dashboard** — Material 3 dark-themed UI with a live status card showing NFC, WiFi, and WebSocket connection states
-- **Admin Controls** — Reset game state or clear all scans via the server from within the app
-- **Configurable Settings** — Override WiFi SSID/password and WebSocket IP/port at runtime; defaults are baked in from `local.properties` at build time
-- **Secure Storage** — WiFi password overrides are stored in `EncryptedSharedPreferences` (AES-256-GCM) backed by the Android Keystore
-- **Broad Compatibility** — Supports Android 6.0 (API 23) through Android 15 (API 36), with Java 8+ API desugaring
+- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap has tools; the others are coming.
+- **Lucky Tap scanner**: read, check in and check out NFC cards, sent to the server as they're tapped, or write a number (1–100) to a blank card.
+- **Lucky Tap game**: live checked-in cards with each card's odds and this round's scans, the last draw's winners, winners per draw, Check in all, Scan all, Clear scans and Reset game.
+- **Automatic WiFi**: joins the event network on launch and reconnects to the server with backoff.
+- **Settings**: override the WiFi network and server address; the password is stored encrypted (`EncryptedSharedPreferences`).
+- **Android 6.0 (API 23) to 15 (API 36)**. NFC is only needed for scanning.
 
 ## How It Works
 

@@ -42,6 +42,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,6 +53,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -97,6 +100,16 @@ object LuckyTapTags {
     const val STOP_SCANNING = "luckytap.stopScanning"
     const val SUCCESS = "luckytap.success"
     const val CONFIRM = "luckytap.confirm"
+    const val TAB_SCANNER = "luckytap.tab.scanner"
+    const val TAB_GAME = "luckytap.tab.game"
+    const val CHECK_IN_ALL = "luckytap.checkInAll"
+    const val SCAN_ALL = "luckytap.scanAll"
+    const val REFRESH = "luckytap.refresh"
+    const val FEWER_WINNERS = "luckytap.fewerWinners"
+    const val MORE_WINNERS = "luckytap.moreWinners"
+    const val NUM_WINNERS = "luckytap.numWinners"
+    const val DRAW_STATUS = "luckytap.drawStatus"
+    fun card(number: Int) = "luckytap.card.$number"
 }
 
 /** Everything the Lucky Tap screen draws. */
@@ -112,9 +125,29 @@ data class LuckyTapScreenState(
     val successNumber: String?,
     val writeInput: String,
     val writeEnabled: Boolean,
+    val serverConnected: Boolean = false,
+    val game: LuckyTapGameState = LuckyTapGameState(),
 )
 
-private enum class Confirm { RESET, CLEAR }
+/** What the screen can ask the view model to do. */
+data class LuckyTapActions(
+    val onBack: () -> Unit = {},
+    val onEnableNfc: () -> Unit = {},
+    val onRead: () -> Unit = {},
+    val onCheckIn: () -> Unit = {},
+    val onCheckOut: () -> Unit = {},
+    val onWriteInputChange: (String) -> Unit = {},
+    val onWrite: () -> Unit = {},
+    val onResetGame: () -> Unit = {},
+    val onClearScans: () -> Unit = {},
+    val onCheckInAll: () -> Unit = {},
+    val onScanAll: () -> Unit = {},
+    val onRefresh: () -> Unit = {},
+    val onSetNumWinners: (Int) -> Unit = {},
+    val onStopScanning: () -> Unit = {},
+)
+
+internal enum class Confirm { RESET, CLEAR, CHECK_IN_ALL, SCAN_ALL }
 
 /** Wires [LuckyTapScreen] to its view model: back handling, toasts, sound, screen-on. */
 @Composable
@@ -133,6 +166,8 @@ fun LuckyTapRoute(vm: LuckyTapViewModel, onBack: () -> Unit, onEnableNfc: () -> 
         successNumber = successNumber,
         writeInput = vm.writeInput.collectAsStateWithLifecycle().value,
         writeEnabled = vm.isWriteButtonEnabled.collectAsStateWithLifecycle().value,
+        serverConnected = vm.isServerConnected.collectAsStateWithLifecycle().value,
+        game = vm.gameState.collectAsStateWithLifecycle().value,
     )
 
     BackHandler(enabled = uiState != AppUiState.NORMAL) { vm.onBackButtonPressed() }
@@ -159,16 +194,22 @@ fun LuckyTapRoute(vm: LuckyTapViewModel, onBack: () -> Unit, onEnableNfc: () -> 
 
     LuckyTapScreen(
         state = state,
-        onBack = onBack,
-        onEnableNfc = onEnableNfc,
-        onRead = vm::onReadButtonModeSelected,
-        onCheckIn = vm::onCheckInButtonModeSelected,
-        onCheckOut = vm::onCheckOutButtonModeSelected,
-        onWriteInputChange = vm::onWriteInputChange,
-        onWrite = vm::onWriteButtonModeSelected,
-        onResetGame = vm::onResetGameButtonPressed,
-        onClearScans = vm::onClearScansButtonPressed,
-        onStopScanning = { vm.onBackButtonPressed() },
+        actions = LuckyTapActions(
+            onBack = onBack,
+            onEnableNfc = onEnableNfc,
+            onRead = vm::onReadButtonModeSelected,
+            onCheckIn = vm::onCheckInButtonModeSelected,
+            onCheckOut = vm::onCheckOutButtonModeSelected,
+            onWriteInputChange = vm::onWriteInputChange,
+            onWrite = vm::onWriteButtonModeSelected,
+            onResetGame = vm::onResetGameButtonPressed,
+            onClearScans = vm::onClearScansButtonPressed,
+            onCheckInAll = vm::onCheckInAll,
+            onScanAll = vm::onScanAll,
+            onRefresh = vm::onRefresh,
+            onSetNumWinners = vm::onSetNumWinners,
+            onStopScanning = { vm.onBackButtonPressed() },
+        ),
     )
 }
 
@@ -181,19 +222,7 @@ private fun playSuccessSound(context: android.content.Context) {
 }
 
 @Composable
-fun LuckyTapScreen(
-    state: LuckyTapScreenState,
-    onBack: () -> Unit,
-    onEnableNfc: () -> Unit,
-    onRead: () -> Unit,
-    onCheckIn: () -> Unit,
-    onCheckOut: () -> Unit,
-    onWriteInputChange: (String) -> Unit,
-    onWrite: () -> Unit,
-    onResetGame: () -> Unit,
-    onClearScans: () -> Unit,
-    onStopScanning: () -> Unit,
-) {
+fun LuckyTapScreen(state: LuckyTapScreenState, actions: LuckyTapActions) {
     val background by animateColorAsState(
         when (state.uiState) {
             AppUiState.NORMAL -> AppColors.Background
@@ -205,11 +234,8 @@ fun LuckyTapScreen(
     )
     Box(Modifier.fillMaxSize().background(background)) {
         when (state.uiState) {
-            AppUiState.NORMAL -> ControlPanel(
-                state, onBack, onEnableNfc, onRead, onCheckIn, onCheckOut,
-                onWriteInputChange, onWrite, onResetGame, onClearScans,
-            )
-            AppUiState.SCANNING -> ScanningOverlay(state, onStopScanning)
+            AppUiState.NORMAL -> ControlPanel(state, actions)
+            AppUiState.SCANNING -> ScanningOverlay(state, actions.onStopScanning)
             AppUiState.SUCCESS_DISPLAY -> SuccessOverlay(state.successNumber.orEmpty())
         }
     }
@@ -217,108 +243,47 @@ fun LuckyTapScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ControlPanel(
-    state: LuckyTapScreenState,
-    onBack: () -> Unit,
-    onEnableNfc: () -> Unit,
-    onRead: () -> Unit,
-    onCheckIn: () -> Unit,
-    onCheckOut: () -> Unit,
-    onWriteInputChange: (String) -> Unit,
-    onWrite: () -> Unit,
-    onResetGame: () -> Unit,
-    onClearScans: () -> Unit,
-) {
+private fun ControlPanel(state: LuckyTapScreenState, actions: LuckyTapActions) {
     var confirm by rememberSaveable { mutableStateOf<Confirm?>(null) }
-    val focusManager = LocalFocusManager.current
-    val canScan = state.connectionsActive
-    val canWrite = state.writeEnabled && state.nfcState == NfcState.AVAILABLE
+    var tab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         containerColor = Color.Transparent,
+        contentColor = AppColors.OnSurface, // not derivable from a transparent container
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.lucky_tap_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Background),
-            )
+            Column {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.lucky_tap_title), fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = actions.onBack) {
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Background),
+                )
+                PrimaryTabRow(selectedTabIndex = tab, containerColor = AppColors.Background) {
+                    Tab(
+                        selected = tab == 0,
+                        onClick = { tab = 0 },
+                        selectedContentColor = AppColors.PrimaryGreen,
+                        unselectedContentColor = AppColors.OnSurfaceMedium,
+                        text = { Text(stringResource(R.string.tab_scanner)) },
+                        modifier = Modifier.testTag(LuckyTapTags.TAB_SCANNER),
+                    )
+                    Tab(
+                        selected = tab == 1,
+                        onClick = { tab = 1 },
+                        selectedContentColor = AppColors.PrimaryGreen,
+                        unselectedContentColor = AppColors.OnSurfaceMedium,
+                        text = { Text(stringResource(R.string.tab_game)) },
+                        modifier = Modifier.testTag(LuckyTapTags.TAB_GAME),
+                    )
+                }
+            }
         },
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            ConnectionCard(state)
-            when (state.nfcState) {
-                NfcState.DISABLED -> FilledTonalButton(
-                    onClick = onEnableNfc,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(LuckyTapTags.ENABLE_NFC),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(containerColor = AppColors.SurfaceVariant, contentColor = AppColors.Warning),
-                ) { Text(stringResource(R.string.button_enable_nfc), fontWeight = FontWeight.Bold) }
-                NfcState.UNAVAILABLE -> Text(
-                    stringResource(R.string.nfc_no_hardware),
-                    color = AppColors.Error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                NfcState.AVAILABLE -> Unit
-            }
-
-            SectionHeader(stringResource(R.string.lucky_tap_section_scan))
-            Button(
-                onClick = { focusManager.clearFocus(); onRead() },
-                enabled = canScan,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(LuckyTapTags.READ),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AppColors.PrimaryGreen, contentColor = AppColors.OnPrimary),
-            ) { Text(stringResource(R.string.button_start_scanning), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SecondaryButton(R.string.button_check_in, canScan, LuckyTapTags.CHECK_IN, Modifier.weight(1f)) {
-                    focusManager.clearFocus(); onCheckIn()
-                }
-                SecondaryButton(R.string.button_check_out, canScan, LuckyTapTags.CHECK_OUT, Modifier.weight(1f)) {
-                    focusManager.clearFocus(); onCheckOut()
-                }
-            }
-
-            SectionHeader(stringResource(R.string.section_write), Modifier.padding(top = 8.dp))
-            OutlinedTextField(
-                value = state.writeInput,
-                onValueChange = onWriteInputChange,
-                label = { Text(stringResource(R.string.hint_enter_number)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth().testTag(LuckyTapTags.WRITE_INPUT),
-            )
-            FilledTonalButton(
-                onClick = { focusManager.clearFocus(); onWrite() },
-                enabled = canWrite,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(LuckyTapTags.WRITE),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.filledTonalButtonColors(containerColor = AppColors.SurfaceVariant, contentColor = AppColors.SecondaryBlue),
-            ) { Text(stringResource(R.string.button_write_nfc)) }
-
-            SectionHeader(stringResource(R.string.section_admin), Modifier.padding(top = 8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DestructiveButton(R.string.button_clear_scans, canScan, LuckyTapTags.CLEAR, Modifier.weight(1f)) { confirm = Confirm.CLEAR }
-                DestructiveButton(R.string.button_reset_game, canScan, LuckyTapTags.RESET, Modifier.weight(1f)) { confirm = Confirm.RESET }
-            }
-
-            Text(
-                text = state.statusText,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag(LuckyTapTags.STATUS),
-                color = AppColors.OnSurfaceMedium,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+        Box(Modifier.fillMaxSize().padding(padding)) {
+            if (tab == 0) ScannerTab(state, actions) else GameTab(state, actions) { confirm = it }
         }
     }
 
@@ -326,7 +291,10 @@ private fun ControlPanel(
         val (title, body, action) = when (which) {
             Confirm.RESET -> Triple(R.string.confirm_reset_title, R.string.confirm_reset_body, R.string.confirm_reset_action)
             Confirm.CLEAR -> Triple(R.string.confirm_clear_title, R.string.confirm_clear_body, R.string.confirm_clear_action)
+            Confirm.CHECK_IN_ALL -> Triple(R.string.confirm_check_in_all_title, R.string.confirm_check_in_all_body, R.string.confirm_check_in_all_action)
+            Confirm.SCAN_ALL -> Triple(R.string.confirm_scan_all_title, R.string.confirm_scan_all_body, R.string.confirm_scan_all_action)
         }
+        val destructive = which == Confirm.RESET || which == Confirm.CLEAR
         AlertDialog(
             onDismissRequest = { confirm = null },
             title = { Text(stringResource(title)) },
@@ -335,10 +303,15 @@ private fun ControlPanel(
                 TextButton(
                     onClick = {
                         confirm = null
-                        if (which == Confirm.RESET) onResetGame() else onClearScans()
+                        when (which) {
+                            Confirm.RESET -> actions.onResetGame()
+                            Confirm.CLEAR -> actions.onClearScans()
+                            Confirm.CHECK_IN_ALL -> actions.onCheckInAll()
+                            Confirm.SCAN_ALL -> actions.onScanAll()
+                        }
                     },
                     modifier = Modifier.testTag(LuckyTapTags.CONFIRM),
-                ) { Text(stringResource(action), color = AppColors.Error) }
+                ) { Text(stringResource(action), color = if (destructive) AppColors.Error else AppColors.PrimaryGreen) }
             },
             dismissButton = { TextButton(onClick = { confirm = null }) { Text(stringResource(R.string.cancel)) } },
             containerColor = AppColors.SurfaceVariant,
@@ -347,7 +320,84 @@ private fun ControlPanel(
 }
 
 @Composable
-private fun ConnectionCard(state: LuckyTapScreenState) {
+private fun ScannerTab(state: LuckyTapScreenState, actions: LuckyTapActions) {
+    val focusManager = LocalFocusManager.current
+    val canScan = state.connectionsActive
+    val canWrite = state.writeEnabled && state.nfcState == NfcState.AVAILABLE
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ConnectionCard(state)
+        when (state.nfcState) {
+            NfcState.DISABLED -> FilledTonalButton(
+                onClick = actions.onEnableNfc,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(LuckyTapTags.ENABLE_NFC),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(containerColor = AppColors.SurfaceVariant, contentColor = AppColors.Warning),
+            ) { Text(stringResource(R.string.button_enable_nfc), fontWeight = FontWeight.Bold) }
+            NfcState.UNAVAILABLE -> Text(
+                stringResource(R.string.nfc_no_hardware),
+                color = AppColors.Error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            NfcState.AVAILABLE -> Unit
+        }
+
+        SectionHeader(stringResource(R.string.lucky_tap_section_scan))
+        Button(
+            onClick = { focusManager.clearFocus(); actions.onRead() },
+            enabled = canScan,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(LuckyTapTags.READ),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AppColors.PrimaryGreen, contentColor = AppColors.OnPrimary),
+        ) { Text(stringResource(R.string.button_start_scanning), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SecondaryButton(R.string.button_check_in, canScan, LuckyTapTags.CHECK_IN, Modifier.weight(1f)) {
+                focusManager.clearFocus(); actions.onCheckIn()
+            }
+            SecondaryButton(R.string.button_check_out, canScan, LuckyTapTags.CHECK_OUT, Modifier.weight(1f)) {
+                focusManager.clearFocus(); actions.onCheckOut()
+            }
+        }
+
+        SectionHeader(stringResource(R.string.section_write), Modifier.padding(top = 8.dp))
+        OutlinedTextField(
+            value = state.writeInput,
+            onValueChange = actions.onWriteInputChange,
+            label = { Text(stringResource(R.string.hint_enter_number)) },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth().testTag(LuckyTapTags.WRITE_INPUT),
+        )
+        FilledTonalButton(
+            onClick = { focusManager.clearFocus(); actions.onWrite() },
+            enabled = canWrite,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(LuckyTapTags.WRITE),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(containerColor = AppColors.SurfaceVariant, contentColor = AppColors.SecondaryBlue),
+        ) { Text(stringResource(R.string.button_write_nfc)) }
+
+        StatusLine(state.statusText)
+    }
+}
+
+@Composable
+private fun StatusLine(text: String) {
+    Text(
+        text = text,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag(LuckyTapTags.STATUS),
+        color = AppColors.OnSurfaceMedium,
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.bodyMedium,
+    )
+}
+
+@Composable
+internal fun ConnectionCard(state: LuckyTapScreenState) {
     StatusCard {
         val (nfcValue, nfcTone) = when (state.nfcState) {
             NfcState.AVAILABLE -> stringResource(R.string.connection_nfc_available) to StatusTone.OK
@@ -371,7 +421,7 @@ private fun ConnectionCard(state: LuckyTapScreenState) {
 }
 
 @Composable
-private fun SecondaryButton(label: Int, enabled: Boolean, tag: String, modifier: Modifier, onClick: () -> Unit) {
+internal fun SecondaryButton(label: Int, enabled: Boolean, tag: String, modifier: Modifier, onClick: () -> Unit) {
     FilledTonalButton(
         onClick = onClick,
         enabled = enabled,
@@ -382,7 +432,7 @@ private fun SecondaryButton(label: Int, enabled: Boolean, tag: String, modifier:
 }
 
 @Composable
-private fun DestructiveButton(label: Int, enabled: Boolean, tag: String, modifier: Modifier, onClick: () -> Unit) {
+internal fun DestructiveButton(label: Int, enabled: Boolean, tag: String, modifier: Modifier, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,

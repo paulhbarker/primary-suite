@@ -472,4 +472,130 @@ class LuckyTapViewModelTest {
         assertTrue(socket.sent.isEmpty())
         assertEquals(List(2) { s(R.string.toast_no_connection) }, toasts())
     }
+
+    // --- Live game state (phase 5) ---
+
+    private suspend fun TestScope.receive(json: String) {
+        socket.events.emit(SocketEvent.Received(GameMessage.decode(json)!!))
+        runCurrent()
+    }
+
+    private val fullState = """{"type":"lucky-tap-full-state","payload":{"checkedInNumbers":[3,7],"likelihoods":{"3":100,"7":50},"currentCollection":[7],"numWinners":2}}"""
+
+    /** WiFi and server up, NFC off: enough for admin. */
+    private fun TestScope.serverOnly() {
+        wifi.connectionState.value = WifiConnectionState.CONNECTED
+        socket.connectionState.value = WebSocketConnectionState.CONNECTED
+        vm
+        runCurrent()
+    }
+
+    @Test
+    fun `server messages build the game state`() = runTest(main.dispatcher) {
+        serverOnly()
+
+        receive(fullState)
+        receive("""{"type":"card-activated","payload":{"number":3}}""")
+
+        val game = vm.gameState.value
+        assertTrue(game.synced)
+        assertEquals(listOf(3, 7), game.checkedIn)
+        assertEquals(mapOf(3 to 1, 7 to 1), game.roundScans)
+        assertEquals(2, game.numWinners)
+    }
+
+    @Test
+    fun `losing the socket marks the state stale until the next full state`() = runTest(main.dispatcher) {
+        serverOnly()
+        receive(fullState)
+
+        socket.connectionState.value = WebSocketConnectionState.DISCONNECTED
+        runCurrent()
+        assertFalse(vm.gameState.value.synced)
+        assertEquals(listOf(3, 7), vm.gameState.value.checkedIn) // kept for display
+
+        socket.connectionState.value = WebSocketConnectionState.CONNECTED
+        receive(fullState)
+        assertTrue(vm.gameState.value.synced)
+    }
+
+    @Test
+    fun `admin actions need the server but not nfc`() = runTest(main.dispatcher) {
+        serverOnly()
+        assertFalse(vm.areEssentialConnectionsActive.value)
+        assertTrue(vm.isServerConnected.value)
+
+        vm.onCheckInAll()
+        assertEquals(s(R.string.status_check_in_all_sent), vm.nfcStatusMessage.value)
+        vm.onScanAll()
+        vm.onClearScansButtonPressed()
+        vm.onResetGameButtonPressed()
+        vm.onRefresh()
+
+        assertEquals(
+            listOf("admin-check-in-all", "admin-scan-all", "admin-clear-scans", "admin-reset-game", "admin-get-full-state"),
+            sentTypes(),
+        )
+    }
+
+    @Test
+    fun `winners per draw is sent as a number`() = runTest(main.dispatcher) {
+        serverOnly()
+        receive(fullState)
+
+        vm.onSetNumWinners(3)
+
+        assertEquals(GameMessage("admin-set-num-winners", JSONObject().put("number", 3)), socket.sent.single())
+        assertEquals(s(R.string.status_num_winners_sent, 3), vm.nfcStatusMessage.value)
+    }
+
+    @Test
+    fun `winners per draw ignores zero, too many, and no change`() = runTest(main.dispatcher) {
+        serverOnly()
+        receive(fullState) // numWinners = 2
+
+        vm.onSetNumWinners(0)
+        vm.onSetNumWinners(-1)
+        vm.onSetNumWinners(LuckyTapViewModel.MAX_WINNERS + 1)
+        vm.onSetNumWinners(2)
+
+        assertTrue(socket.sent.isEmpty())
+    }
+
+    @Test
+    fun `admin actions wait while a draw animates`() = runTest(main.dispatcher) {
+        collectEvents()
+        serverOnly()
+        receive(fullState)
+        receive("""{"type":"start-tumbler-animation","payload":{"options":[3,7]}}""")
+
+        vm.onRefresh()
+        vm.onCheckInAll()
+        vm.onSetNumWinners(3)
+        vm.onResetGameButtonPressed()
+        runCurrent()
+
+        assertTrue(socket.sent.isEmpty())
+        assertEquals(List(4) { s(R.string.toast_wait_for_draw) }, toasts())
+
+        receive("""{"type":"selected-number-final","payload":{"numbers":[7]}}""")
+        vm.onRefresh()
+        assertEquals(listOf("admin-get-full-state"), sentTypes())
+    }
+
+    @Test
+    fun `admin actions refuse when the server is down`() = runTest(main.dispatcher) {
+        collectEvents()
+        nfc.setState(NfcState.AVAILABLE)
+        vm
+        runCurrent()
+
+        vm.onCheckInAll()
+        vm.onScanAll()
+        runCurrent()
+
+        assertTrue(socket.sent.isEmpty())
+        assertEquals(s(R.string.status_admin_no_connection), vm.nfcStatusMessage.value)
+        assertEquals(List(2) { s(R.string.toast_no_connection) }, toasts())
+    }
 }

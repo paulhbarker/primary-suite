@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 5 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Phase 6 next** (release 2.0.0). It needs the phone for the on-device check. The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -166,12 +166,22 @@ Also done in this phase:
 
 ### Phase 5: Lucky Tap extras
 
-- [ ] Parse the server messages listed above into a `LuckyTapState` reducer, a pure function tested against JSON fixtures copied from `lucky_tap.go`.
-- [ ] Add a live panel showing the checked-in count and numbers, the current round's scans, each card's weight, and the last winners or draw error.
-- [ ] Add a number-of-winners stepper that sends `admin-set-num-winners` and ignores values of 0 or less.
-- [ ] Add Check in all (1-50) and Scan all buttons, both with confirmation.
-- [ ] Add pull to refresh, which sends `admin-get-full-state`.
-- [ ] Add reducer tests for every message type and UI tests for the panel and its controls.
+- [x] Parse the server messages listed above into a `LuckyTapState` reducer, a pure function tested against JSON fixtures copied from `lucky_tap.go`.
+- [x] Add a live panel showing the checked-in count and numbers, the current round's scans, each card's weight, and the last winners or draw error.
+- [x] Add a number-of-winners stepper that sends `admin-set-num-winners` and ignores values of 0 or less.
+- [x] Add Check in all (1-50) and Scan all buttons, both with confirmation.
+- [x] Add pull to refresh, which sends `admin-get-full-state`.
+- [x] Add reducer tests for every message type and UI tests for the panel and its controls.
+
+Decisions and findings:
+
+- **The app never requests a full state on its own.** `admin-get-full-state` is broadcast to every client, and the projected display resets to its idle card animation when it gets one (`SET_FULL_STATE` in `LuckyTapV2.tsx`). Refreshing is manual only, and the Game tab warns that it redraws the display.
+- **No admin actions while a draw animates.** From `start-tumbler-animation` until `selected-number-final` or `draw-error`, refresh, winners per draw, Check in all, Scan all, Clear and Reset are disabled. Most of them make the server broadcast a full state.
+- **The app applies the after-draw changes itself.** The server sends only `selected-number-final` after a draw: it clears the round and lowers each winner's weight by 25 without broadcasting. The reducer does the same. The constants mirror `InitialWeightLuckyTap` (100) and `DefaultReductionAmountLuckyTap` (25) in `lucky_tap.go`; update both places if either changes.
+- **Admin needs only the server**, not NFC, so a phone without NFC can still run the game. Scanning still needs NFC, WiFi and the server.
+- The Lucky Tap screen now has two tabs: Scanner (scan and write) and Game (live state and admin). Clear and Reset moved to Game.
+- Odds are shown as a percentage of a fresh card's weight (100% = full odds). Cards scanned this round have a green outline and a count (×2).
+- Winners per draw goes from 1 to 20; the server only rejects values below 1.
 
 ### Phase 6: release 2.0.0
 
@@ -204,3 +214,4 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 | 2026-10-17 | 2 | Logic split into `core/` (config, net, protocol, wifi, nfc, ui) and `games/luckytap/`. 65 tests in 5.5 s with a warm daemon. The socket tests use a real local server; each takes under 0.4 s and they passed 25 out of 25 stress runs. The view model tests are the parity spec for phase 4. The XML UI is unchanged. |
 | 2026-10-17 | 3 | Compose home, settings and coming-soon screens, with the old XML Lucky Tap screen behind the home screen. 108 tests: 14.6 s wall-clock with a warm daemon, 28 s of test time across parallel forks. The Robolectric Compose tests take about 1 s each after the first. Checked the screens by rendering them to PNG with Robolectric's native graphics. |
 | 2026-10-17 | 4 | Lucky Tap is now Compose, and the XML screens are gone. 122 tests in 16 s with 2 test workers; the suite peaks at 4.1 GB of WSL memory. The earlier setting of 8 uncapped test JVMs, run in the same command as an R8 release build, ran WSL (8 GB) out of memory, so the forks are capped and the limits are recorded in `AGENTS.md`. |
+| 2026-10-17 | 5 | Live game state, the winners stepper, Check in all, Scan all and refresh are done. 152 tests in 21.5 s. The release APK is 2.9 MB. |

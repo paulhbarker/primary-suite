@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -59,6 +60,7 @@ class LuckyTapViewModel(
         private const val TAG = "LuckyTapViewModel"
         const val GAME_SLUG = "lucky-tap"
         const val SUCCESS_DISPLAY_DURATION_MS = 1000L
+        const val MAX_WINNERS = 20
     }
 
     private fun str(resId: Int, vararg args: Any): String = strings.get(resId, *args)
@@ -76,6 +78,15 @@ class LuckyTapViewModel(
     val webSocketConnectionState: StateFlow<WebSocketConnectionState> = socket.connectionState
 
     val nfcState: StateFlow<NfcState> = nfc.state
+
+    /** WiFi and the socket are up. Enough for admin actions, which don't need NFC. */
+    val isServerConnected: StateFlow<Boolean> = combine(isWifiConnected, webSocketConnectionState) { wifiConnected, ws ->
+        wifiConnected && ws == WebSocketConnectionState.CONNECTED
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    // --- Live game state from the server ---
+    private val _gameState = MutableStateFlow(LuckyTapGameState())
+    val gameState: StateFlow<LuckyTapGameState> = _gameState.asStateFlow()
 
     val areEssentialConnectionsActive: StateFlow<Boolean> = combine(
         nfc.state,
@@ -131,12 +142,20 @@ class LuckyTapViewModel(
             }
         }
 
-        // Surface socket failures. Incoming game state is handled in phase 5.
         viewModelScope.launch {
             socket.events.collect { event ->
-                if (event is SocketEvent.GaveUp) {
-                    _uiEvents.emit(UiEvent.ShowToast(str(R.string.toast_ws_gave_up, event.attempts)))
+                when (event) {
+                    is SocketEvent.Received -> _gameState.update { it.reduce(event.message) }
+                    is SocketEvent.GaveUp ->
+                        _uiEvents.emit(UiEvent.ShowToast(str(R.string.toast_ws_gave_up, event.attempts)))
                 }
+            }
+        }
+
+        // The server sends a full state on every connect; until then, what we have may be stale.
+        viewModelScope.launch {
+            webSocketConnectionState.collect { ws ->
+                if (ws != WebSocketConnectionState.CONNECTED) _gameState.update { it.copy(synced = false, drawing = false) }
             }
         }
 
@@ -275,10 +294,39 @@ class LuckyTapViewModel(
 
     fun onResetGameButtonPressed() = sendAdmin("admin-reset-game", R.string.status_reset_sent, R.string.status_reset_no_connection)
     fun onClearScansButtonPressed() = sendAdmin("admin-clear-scans", R.string.status_clear_sent, R.string.status_clear_no_connection)
+    fun onCheckInAll() = sendAdmin("admin-check-in-all", R.string.status_check_in_all_sent, R.string.status_admin_no_connection)
+    fun onScanAll() = sendAdmin("admin-scan-all", R.string.status_scan_all_sent, R.string.status_admin_no_connection)
 
-    private fun sendAdmin(type: String, sentRes: Int, offlineRes: Int) {
-        if (areEssentialConnectionsActive.value && socket.send(GameMessage(type))) {
-            _nfcStatusMessage.value = str(sentRes)
+    /** Asks the server to resend the whole state. The display redraws too, so not during a draw. */
+    fun onRefresh() = sendAdmin("admin-get-full-state", null, R.string.status_admin_no_connection)
+
+    /** Sets how many winners the next draw picks. Values below 1 are ignored, as on the server. */
+    fun onSetNumWinners(count: Int) {
+        if (count < 1 || count > MAX_WINNERS || count == _gameState.value.numWinners) return
+        sendAdmin(
+            "admin-set-num-winners", R.string.status_num_winners_sent, R.string.status_admin_no_connection,
+            payload = JSONObject().put("number", count), statusArg = count,
+        )
+    }
+
+    /**
+     * Admin actions need WiFi and the server, not NFC. They're refused while a
+     * draw is animating: most make the server broadcast a full state, which
+     * resets the projected display mid-draw.
+     */
+    private fun sendAdmin(
+        type: String,
+        sentRes: Int?,
+        offlineRes: Int,
+        payload: JSONObject = JSONObject(),
+        statusArg: Any? = null,
+    ) {
+        if (_gameState.value.drawing) {
+            _uiEvents.tryEmit(UiEvent.ShowToast(str(R.string.toast_wait_for_draw)))
+            return
+        }
+        if (isServerConnected.value && socket.send(GameMessage(type, payload))) {
+            if (sentRes != null) _nfcStatusMessage.value = if (statusArg != null) str(sentRes, statusArg) else str(sentRes)
         } else {
             _nfcStatusMessage.value = str(offlineRes)
             _uiEvents.tryEmit(UiEvent.ShowToast(str(R.string.toast_no_connection)))
