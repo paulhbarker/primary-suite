@@ -10,6 +10,16 @@ Builds run in WSL with `memory=8GB` (`C:\Users\paul\.wslconfig`). Running out fr
 - **Measured peaks** of total WSL memory in use: the full test suite with 2 forks peaks at 4.1 GB and takes 16 s; `assembleDebug assembleRelease` peaks at 3.1 GB.
 - To check a new heavy task, sample `free -m` in the background while it runs before you repeat it.
 
+## Parallel agents
+
+Several agents may work at once, each in its own git worktree under `~/projects/primary-suite-wt/`. They must never run Gradle at the same time:
+
+- **Always run Gradle through `scripts/gradle-locked.sh`** (or `scripts/test.sh`, which uses it). It takes a machine-wide `flock`, so builds queue and share one Gradle daemon and one Kotlin daemon. Never call `./gradlew` directly, and never `./gradlew --stop` while other agents are working.
+- **Run only your own tests:** `scripts/test.sh 'com.primarysuite.app.games.<pkg>.*'` runs matching classes in one fork. Leave the full suite to whoever merges.
+- **Compile check:** `scripts/gradle-locked.sh compileDebugUnitTestKotlin` compiles main and test code without running anything.
+- **No release builds** (`assembleRelease`, R8) from agents; the merge step does one.
+- **Rendered screenshots** (Robolectric `GraphicsMode.NATIVE`) are fine through the same scripts. Delete any scratch test before committing.
+
 ## Building
 
 - The Android SDK is at `~/Android/Sdk`, and `ANDROID_HOME` is set in `~/.bashrc`.
