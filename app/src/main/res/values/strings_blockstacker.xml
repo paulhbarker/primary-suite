@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blockstacker_title">Block Stacker</string>
+    <string name="blockstacker_connecting">Connecting…</string>
+    <string name="blockstacker_settings_title">Game settings</string>
+    <string name="blockstacker_max_levels">Max levels</string>
+    <string name="blockstacker_max_levels_help">Maximum number of levels in the game</string>
+    <string name="blockstacker_initial_speed">Initial speed</string>
+    <string name="blockstacker_initial_speed_help">Starting speed of moving blocks</string>
+    <string name="blockstacker_speed_increment">Speed increment</string>
+    <string name="blockstacker_speed_increment_help">Speed increase per level</string>
+    <string name="blockstacker_game_enabled">Game enabled</string>
+    <string name="blockstacker_game_enabled_help">Allow players to start new games</string>
+    <string name="blockstacker_save">Save settings</string>
+    <string name="blockstacker_unsaved">Unsaved changes</string>
+    <string name="blockstacker_reset_defaults">Reset to defaults</string>
+    <string name="blockstacker_test_press">Test button press</string>
+    <string name="blockstacker_status_title">Game status</string>
+    <string name="blockstacker_status">Status</string>
+    <string name="blockstacker_total_games">Total games played</string>
+    <string name="blockstacker_high_score">High score</string>
+    <string name="blockstacker_high_score_value">%1$d levels</string>
+    <string name="blockstacker_last_updated">Last updated</string>
+    <string name="blockstacker_how_title">How to play</string>
+    <string name="blockstacker_how_1">Blocks move back and forth across the screen</string>
+    <string name="blockstacker_how_2">Press the button (or the space bar) to drop the block</string>
+    <string name="blockstacker_how_3">Each block must land on top of the previous one</string>
+    <string name="blockstacker_how_4">Missing the stack ends the game</string>
+    <string name="blockstacker_how_5">Complete all levels to win!</string>
+    <string name="blockstacker_log_title">Message log</string>
+    <string name="blockstacker_log_empty">No messages received yet…</string>
+</resources>
