@@ -65,6 +65,7 @@ class NavigationTest {
                     viewModelFactory = suiteViewModelFactory(
                         settings, wifi, probe, nfc, AndroidStringProvider(context),
                         socketFactory = { slug, _, _ -> socketSlugs += slug; socket },
+                        jeopardyBoards = { Result.success(emptyList()) },
                     ),
                     onEnableNfc = { nfcSettingsOpened++ },
                     onWifiRetry = { wifiRetries++ },
@@ -120,13 +121,25 @@ class NavigationTest {
 
     @Test
     fun `a game without tools shows coming soon, and back returns home`() {
-        compose.onNodeWithTag(HomeTags.game("jeopardy")).performClick()
+        compose.onNodeWithTag(HomeTags.game("reel-rush")).performClick()
 
-        compose.onNodeWithText(s(R.string.coming_soon_body, "Jeopardy!")).assertIsDisplayed()
+        compose.onNodeWithText(s(R.string.coming_soon_body, "Reel Rush")).assertIsDisplayed()
         assertEquals(emptyList<String>(), socketSlugs)
 
         pressBack()
         assertOnHome()
+    }
+
+    @Test
+    fun `Jeopardy opens the host controller on its own socket`() {
+        compose.onNodeWithTag(HomeTags.game("jeopardy")).performClick()
+
+        compose.onNodeWithText(s(R.string.jeopardy_connecting)).assertIsDisplayed()
+        assertEquals(listOf("jeopardy"), socketSlugs)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
     }
 
     @Test

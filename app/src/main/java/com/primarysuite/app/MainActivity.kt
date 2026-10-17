@@ -19,7 +19,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.primarysuite.app.core.nfc.AndroidNfcTag
+import com.primarysuite.app.core.config.serverConfig
 import com.primarysuite.app.core.nfc.NfcState
+import com.primarysuite.app.core.ui.vibrateBuzz
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.core.wifi.WifiSetupCoordinator
 import com.primarysuite.app.ui.PrimarySuiteNavHost
@@ -71,6 +73,7 @@ class MainActivity : ComponentActivity() {
             probe = container.serverProbe,
             nfc = container.nfc,
             strings = container.strings,
+            onBuzz = { vibrateBuzz(applicationContext) },
         )
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
@@ -92,6 +95,7 @@ class MainActivity : ComponentActivity() {
                     onEnableNfc = ::openNfcSettings,
                     onWifiRetry = wifiSetup::retry,
                     onSettingsSaved = { result -> if (result.wifiChanged) wifiSetup.reconnect() },
+                    serverBase = { container.settings.serverConfig.httpUrl },
                 )
             }
         }

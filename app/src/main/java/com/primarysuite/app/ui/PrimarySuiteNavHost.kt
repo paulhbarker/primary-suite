@@ -22,6 +22,11 @@ import com.primarysuite.app.core.net.ServerProbe
 import com.primarysuite.app.core.net.gameSocket
 import com.primarysuite.app.core.nfc.NfcHub
 import com.primarysuite.app.core.ui.StringProvider
+import com.primarysuite.app.core.config.serverConfig
+import com.primarysuite.app.games.jeopardy.HttpJeopardyBoardsApi
+import com.primarysuite.app.games.jeopardy.JeopardyBoardsApi
+import com.primarysuite.app.games.jeopardy.JeopardyHostRoute
+import com.primarysuite.app.games.jeopardy.JeopardyHostViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapRoute
 import com.primarysuite.app.games.luckytap.LuckyTapViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -52,6 +57,8 @@ fun suiteViewModelFactory(
     strings: StringProvider,
     games: List<Game> = GameCatalog.games,
     socketFactory: SocketFactory = { slug, scope, canConnect -> gameSocket(slug, settings, scope, canConnect) },
+    jeopardyBoards: JeopardyBoardsApi = HttpJeopardyBoardsApi({ settings.serverConfig.httpUrl }),
+    onBuzz: () -> Unit = {},
 ): ViewModelProvider.Factory = viewModelFactory {
     initializer { HomeViewModel(settings, wifi, probe, games) }
     initializer { SettingsViewModel(settings) }
@@ -59,6 +66,14 @@ fun suiteViewModelFactory(
         LuckyTapViewModel(strings, wifi, nfc, { scope, canConnect ->
             socketFactory(LuckyTapViewModel.GAME_SLUG, scope, canConnect)
         })
+    }
+    initializer {
+        JeopardyHostViewModel(
+            wifi = wifi,
+            socketFactory = { scope, canConnect -> socketFactory(JeopardyHostViewModel.GAME_SLUG, scope, canConnect) },
+            boardsApi = jeopardyBoards,
+            onBuzz = onBuzz,
+        )
     }
 }
 
@@ -74,6 +89,8 @@ fun PrimarySuiteNavHost(
     onWifiRetry: () -> Unit,
     onSettingsSaved: (SettingsSaved) -> Unit,
     games: List<Game> = GameCatalog.games,
+    /** The game server's base URL, for images on the board. */
+    serverBase: () -> String = { "" },
     navController: NavHostController = rememberNavController(),
 ) {
     NavHost(navController, startDestination = Routes.HOME) {
@@ -131,6 +148,10 @@ fun PrimarySuiteNavHost(
                     // Scoped to this destination: the socket closes when the screen does.
                     val vm: LuckyTapViewModel = viewModel(factory = viewModelFactory)
                     LuckyTapRoute(vm, onBack = onBack, onEnableNfc = onEnableNfc)
+                }
+                game.slug == GameCatalog.JEOPARDY -> {
+                    val vm: JeopardyHostViewModel = viewModel(factory = viewModelFactory)
+                    JeopardyHostRoute(vm, serverBase = serverBase(), onBack = onBack)
                 }
                 else -> ComingSoonScreen(game, onBack = onBack)
             }

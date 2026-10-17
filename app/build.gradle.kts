@@ -130,6 +130,9 @@ dependencies {
     // Hosts composables in Robolectric tests (createComposeRule).
     debugImplementation(libs.compose.ui.test.manifest)
     implementation(libs.okhttp)
+    // Jeopardy image clues, loaded from the Pi over the app's OkHttp.
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.security.crypto)
 

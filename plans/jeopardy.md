@@ -1,6 +1,6 @@
 # Jeopardy! host controller
 
-> Status: **J2 in progress.** Update the status line and the progress log as each phase starts or finishes.
+> Status: **J5 next** (check against the Pi). It needs the phone and the Pi. Update the status line and the progress log as each phase starts or finishes.
 
 ## Goal
 
@@ -122,22 +122,28 @@ All tests run on the JVM, within the limits in `AGENTS.md`.
 - [x] `JeopardyHostViewModel`, with tests.
 
 ### J2: host shell, lobby, players
-- [ ] Header, menu, confirmations, snackbar errors, assign banner, adaptive layout, keep screen on, vibrate on buzz.
-- [ ] Lobby panel.
-- [ ] Players panel, add dialog, player dialog (with drain), last button press, score log.
-- [ ] Route `game/jeopardy`, and catalog `hasTools = true`.
-- [ ] UI tests.
+- [x] Header, menu, confirmations, snackbar errors, assign banner, adaptive layout, keep screen on, vibrate on buzz.
+- [x] Lobby panel.
+- [x] Players panel, add dialog, player dialog (with drain), last button press, score log.
+- [x] Route `game/jeopardy`, and catalog `hasTools = true`.
+- [x] UI tests.
 
 ### J3: game flow
-- [ ] Round intro, board grid, clue panel (blur and peek, timer, responder picker, judge, reveal, cancel), DD wager, reveal, round end, game over.
-- [ ] Image sides through Coil.
-- [ ] UI tests for each phase.
+- [x] Round intro, board grid, clue panel (blur and peek, timer, responder picker, judge, reveal, cancel), DD wager, reveal, round end, game over.
+- [x] Image sides through Coil.
+- [x] UI tests for each phase.
 
 ### J4: settings
-- [ ] Settings sheet with every field, sending `jeopardy-update-settings`, with tests.
+- [x] Settings sheet with every field, sending `jeopardy-update-settings`, with tests.
 
 ### J5: check against the Pi
 - [ ] Play a full game against the real server on the phone, with the display on the projector and phones or box buttons as buzzers. Needs the phone and the Pi.
+
+## Notes from building it
+
+- **Text fields in dialogs use the state-based API** (`TextFieldState`). The value-based `OutlinedTextField` never goes idle inside a dialog window under Robolectric: the test hangs, then runs out of memory. Use `rememberTextFieldState` for any new text field in a dialog.
+- **Library versions held back.** Coil is pinned to 3.3.0: 3.4 needs Kotlin 2.3 or later (the project uses 2.2), and 3.6 needs `compileSdk` 37.
+- **Device check needed for the response blur.** The image renders used to check the screens skip `Modifier.blur`, so check that the response is really hidden while reading, on Android 12 or later (blur) and below (hidden).
 
 ## Progress log
 
@@ -145,3 +151,4 @@ All tests run on the JVM, within the limits in `AGENTS.md`.
 |---|---|---|
 | 2026-10-17 | | Plan written from the web host source and the server protocol. |
 | 2026-10-17 | J1 | Protocol, boards API, countdown, and a view model that says hello on every connect and ignores the public view until welcomed. 29 new tests; 181 in total. |
+| 2026-10-17 | J2–J4 | Host shell, lobby, players, player dialog with drain, score log, every game phase, Daily Double wager, image sides and settings. 36 Robolectric UI tests against fixture states; 218 tests in 19 s. Screens checked as rendered images: phone and tablet layouts, board, reading, answering, Daily Double. |

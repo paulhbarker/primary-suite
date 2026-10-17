@@ -14,6 +14,7 @@ robolectric = "4.17"
 androidxTestCore = "1.7.0"
 orgJson = "20260814"
 composeBom = "2026.06.01"  # 2026.08+ (Compose 1.12) needs compileSdk 37
+coil = "3.3.0"  # 3.4+ needs Kotlin 2.3+, 3.6+ needs compileSdk 37
 navigationCompose = "2.9.7"  # 2.10+ needs compileSdk 37
 
 [libraries]
@@ -34,6 +35,8 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }

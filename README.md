@@ -6,7 +6,8 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 
 ## Features
 
-- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap has tools; the others are coming.
+- **Game list**: every Simple Games game, with WiFi and game server status. Lucky Tap and Jeopardy! have tools; the others are coming.
+- **Jeopardy! host**: the web host controller on the phone: lobby, board, clues with a hidden-until-peeked response, buzzers, judging, Daily Double wagers, players (scores, control, buttons, drain), undo and settings. The phone vibrates when someone buzzes in.
 - **Lucky Tap scanner**: read, check in and check out NFC cards, sent to the server as they're tapped, or write a number (1–100) to a blank card.
 - **Lucky Tap game**: live checked-in cards with each card's odds and this round's scans, the last draw's winners, winners per draw, Check in all, Scan all, Clear scans and Reset game.
 - **Automatic WiFi**: joins the event network on launch and reconnects to the server with backoff.
@@ -36,6 +37,7 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 | **HomeViewModel** | `ui/home/` | WiFi and game server status, the game list |
 | **SettingsViewModel** | `ui/settings/` | WiFi and server overrides with validation |
 | **GameCatalog** | `catalog/GameCatalog.kt` | The games the suite lists, and which have tools |
+| **JeopardyHostScreen / JeopardyHostViewModel** | `games/jeopardy/` | Jeopardy! host controller over `/ws/jeopardy` |
 | **LuckyTapScreen / LuckyTapViewModel** | `games/luckytap/` | Lucky Tap scanning station: read, check-in/out, write, reset, clear |
 | **WebSocketManager** | `core/net/WebSocketManager.kt` | One game's socket (`/ws/{slug}`): connect, send, receive, reconnect with backoff |
 | **ServerProbe** | `core/net/ServerProbe.kt` | HTTP check that the game server answers |
