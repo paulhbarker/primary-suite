@@ -155,8 +155,9 @@ private fun DrainPlayerButton(player: Player, modifier: Modifier, onTick: () -> 
     Box(
         modifier
             .fillMaxWidth()
-            .background(if (holding) AppColors.Error else AppColors.Error.copy(alpha = 0.18f), shape)
-            .border(2.dp, AppColors.Error, shape)
+            // A normal button until held; red while it drains.
+            .background(if (holding) AppColors.Error else AppColors.SurfaceVariant, shape)
+            .border(1.dp, if (holding) AppColors.Error else AppColors.Outline, shape)
             .holdToRepeat(onHoldChange = { holding = it }, onTick = onTick)
             .testTag(DrainTags.player(player.id))
             .semantics { contentDescription = "${player.name} ${money(player.score)}" },
@@ -178,7 +179,7 @@ private fun DrainPlayerButton(player: Player, modifier: Modifier, onTick: () -> 
             )
             Text(
                 money(player.score),
-                color = if (holding) Color.White else if (player.score < 0) JeopardyColors.Negative else Color.White,
+                color = if (!holding && player.score < 0) JeopardyColors.Negative else Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
             )
