@@ -93,7 +93,11 @@ android {
             // android.util.Log and friends return defaults instead of throwing in plain JVM tests.
             isReturnDefaultValues = true
             all { test ->
-                test.maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+                // Each Robolectric/Compose test JVM loads the Android framework and uses
+                // about 1 GB. WSL has 8 GB shared with the Gradle and Kotlin daemons, so keep
+                // the number of workers and their heaps bounded. Override with -PtestForks=N.
+                test.maxParallelForks = (project.findProperty("testForks") as String?)?.toIntOrNull() ?: 2
+                test.maxHeapSize = "1g"
             }
         }
     }
@@ -110,13 +114,9 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)

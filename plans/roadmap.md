@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 4 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Phase 5 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -145,15 +145,24 @@ Also done in this phase:
 
 ### Phase 4: Lucky Tap in Compose (parity)
 
-- [ ] Add `LuckyTapViewModel`, built from the phase 2 logic. It owns a `GameSocket("lucky-tap")`, opens it when the screen opens, and closes it when the screen closes.
-- [ ] Move NFC foreground dispatch into `MainActivity` and forward tags only while the Lucky Tap screen is listening.
-- [ ] Build `LuckyTapScreen` with status rows for NFC and the socket, mode buttons for Read, Check-in, Check-out and Write, the fullscreen scanning state with its animated bar, the success number animation and sound, and the write flow (1-100).
-- [ ] Reset game and Clear scans ask for confirmation.
-- [ ] If NFC is missing or off, show a prompt to enable it. The rest of the app keeps working.
-- [ ] Set NFC to `required="false"` in the manifest.
-- [ ] Port the phase 2 parity tests to `LuckyTapViewModel` and add Robolectric UI tests for each mode, cancelling a scan, losing the connection mid-scan, and the confirmation dialogs.
-- [ ] Device check with real cards: every mode, writing a blank tag, NFC turned off and back on, and walking out of WiFi range mid-scan.
-- [ ] Delete the old `NfcAppViewModel`, `SettingsActivity`, the XML layouts and the unused resources.
+- [x] Add `LuckyTapViewModel`, built from the phase 2 logic. It owns a `GameSocket("lucky-tap")`, opens it when the screen opens, and closes it when the screen closes.
+- [x] Move NFC foreground dispatch into `MainActivity` and forward tags only while the Lucky Tap screen is listening.
+- [x] Build `LuckyTapScreen` with status rows for NFC and the socket, mode buttons for Read, Check-in, Check-out and Write, the fullscreen scanning state with its animated bar, the success number animation and sound, and the write flow (1-100).
+- [x] Reset game and Clear scans ask for confirmation.
+- [x] If NFC is missing or off, show a prompt to enable it. The rest of the app keeps working.
+- [x] Set NFC to `required="false"` in the manifest.
+- [x] Port the phase 2 parity tests to `LuckyTapViewModel` and add Robolectric UI tests for each mode, cancelling a scan, losing the connection mid-scan, and the confirmation dialogs.
+- [ ] (Deferred until the phone is connected) Device check with real cards: every mode, writing a blank tag, NFC turned off and back on, and walking out of WiFi range mid-scan.
+- [x] Delete the old `NfcAppViewModel`, `SettingsActivity`, the XML layouts and the unused resources.
+
+Also done in this phase:
+
+- `NfcHub` (app-wide) holds the NFC state and routes tapped tags to whichever screen is listening. An `NfcTag` interface wraps Android's `Tag`, so the view model and tests never touch it.
+- Writing a card only needs NFC, not the server, so cards can be prepared away from the event network. Scanning and admin still need NFC, WiFi and the server.
+- The buttons are disabled while offline rather than hidden.
+- WifiController's receiver for Android 6–9 (API 23–28) now also detects the network dropping, which the old activity used to handle.
+- AppCompat, Material Components, ConstraintLayout and LiveData are removed, along with 23 unused strings. The release APK went from 3.9 MB to 2.8 MB.
+- Test JVMs are capped at 2 forks with 1 GB heaps (see `AGENTS.md`). Eight uncapped forks ran WSL out of memory.
 
 ### Phase 5: Lucky Tap extras
 
@@ -194,3 +203,4 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 | 2026-10-17 | 1 | Renamed to Primary Suite (`com.primarysuite.app`) in `2cb9e99`. The GitHub repo is now `paulhbarker/primary-suite`; github.com redirects the old URLs, but the old Pages URL `paulhbarker.github.io/LuckyTap/` now returns 404, so printed copies of the old QR code are dead. Release PR #4 now reads 2.0.0. The Tests check doesn't run on release-please PRs because PRs opened with the default token don't trigger workflows (the run shows "action required"). That's harmless, since tests run on every push to `main`. |
 | 2026-10-17 | 2 | Logic split into `core/` (config, net, protocol, wifi, nfc, ui) and `games/luckytap/`. 65 tests in 5.5 s with a warm daemon. The socket tests use a real local server; each takes under 0.4 s and they passed 25 out of 25 stress runs. The view model tests are the parity spec for phase 4. The XML UI is unchanged. |
 | 2026-10-17 | 3 | Compose home, settings and coming-soon screens, with the old XML Lucky Tap screen behind the home screen. 108 tests: 14.6 s wall-clock with a warm daemon, 28 s of test time across parallel forks. The Robolectric Compose tests take about 1 s each after the first. Checked the screens by rendering them to PNG with Robolectric's native graphics. |
+| 2026-10-17 | 4 | Lucky Tap is now Compose, and the XML screens are gone. 122 tests in 16 s with 2 test workers; the suite peaks at 4.1 GB of WSL memory. The earlier setting of 8 uncapped test JVMs, run in the same command as an R8 release build, ran WSL (8 GB) out of memory, so the forks are capped and the limits are recorded in `AGENTS.md`. |

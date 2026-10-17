@@ -27,27 +27,17 @@
     <string name="toast_read_error">Read Error: %1$s</string>
     <string name="toast_read_error_short">Read Error</string>
     <string name="toast_no_connection">Cannot send: No connection</string>
-    <string name="toast_ws_retries_exhausted">WebSocket connection failed after %1$d attempts.</string>
-    <string name="toast_nfc_not_available">NFC is not available on this device.</string>
     <string name="toast_enable_nfc">Please enable NFC to use this app.</string>
     <string name="toast_location_permission_essential">Fine Location permission is essential for WiFi features.</string>
     <string name="toast_location_permission_settings">Location permission permanently denied. Please enable it in App Settings.</string>
-    <string name="toast_permissions_not_granted">Some required permissions were not granted.</string>
     <string name="toast_wifi_required">WiFi is required for the app to function.</string>
     <string name="toast_wifi_ssid_not_configured">Wi-Fi network not configured. Open Settings to set your network name.</string>
     <string name="toast_location_required">Location services are necessary for WiFi features.</string>
     <string name="toast_enable_wifi">Please enable WiFi.</string>
     <string name="toast_location_services_required">Location services are required for WiFi on this Android version.</string>
 
-    <!-- Connection status -->
-    <string name="connection_wifi_not_connected">WiFi not connected to \'%1$s\'</string>
-    <string name="connection_ws_state">WebSocket %1$s</string>
-    <string name="connection_status_prefix">Status: %1$s.</string>
-
     <!-- NFC intent messages -->
     <string name="nfc_not_active_mode">NFC detected, but not in an active mode.</string>
-    <string name="nfc_no_tag_in_intent">Error: No tag found in intent.</string>
-    <string name="nfc_no_operation">NFC detected, but no operation selected.</string>
     <string name="nfc_invalid_number_at_tap">Invalid number at time of tap.</string>
 
     <!-- Connection card -->
@@ -76,25 +66,11 @@
 
     <!-- Settings screen -->
     <string name="title_settings">Settings</string>
-    <string name="label_wifi_ssid">WiFi SSID</string>
-    <string name="label_wifi_password">WiFi Password</string>
-    <string name="label_ws_ip">WebSocket IP</string>
-    <string name="label_ws_port">WebSocket Port</string>
-    <string name="hint_default_value">Default: %1$s</string>
-    <string name="button_save">Save</string>
-    <string name="button_reset_defaults">Reset to Defaults</string>
-    <string name="button_settings">Settings</string>
     <string name="toast_settings_saved">Settings saved.</string>
     <string name="toast_settings_reset">Settings reset to defaults.</string>
     <string name="settings_port_invalid">Port must be between 1 and 65535</string>
 
     <!-- Accessibility descriptions -->
-    <string name="cd_ws_status_connected">WebSocket connected</string>
-    <string name="cd_ws_status_connecting">WebSocket connecting</string>
-    <string name="cd_ws_status_disconnected">WebSocket disconnected</string>
-    <string name="cd_nfc_status_enabled">NFC enabled</string>
-    <string name="cd_nfc_status_disabled">NFC disabled</string>
-    <string name="cd_scanning_bar">Scanning indicator</string>
     <string name="cd_scanned_number">Scanned number: %1$s</string>
     <string name="toast_ws_gave_up">WebSocket connection failed after %1$d attempts.</string>
 
@@ -134,4 +110,22 @@
     <string name="settings_reset">Reset to defaults</string>
     <string name="cd_show_password">Show password</string>
     <string name="cd_hide_password">Hide password</string>
+
+    <!-- Lucky Tap (Compose) -->
+    <string name="lucky_tap_title">Lucky Tap</string>
+    <string name="lucky_tap_section_scan">Scan cards</string>
+    <string name="button_enable_nfc">Turn on NFC</string>
+    <string name="nfc_no_hardware">This phone has no NFC, so it can\'t scan cards.</string>
+    <string name="scanning_tap_card">Tap a card</string>
+    <string name="scanning_cancel">Stop scanning</string>
+    <string name="mode_read">Read</string>
+    <string name="mode_check_in">Check-in</string>
+    <string name="mode_check_out">Check-out</string>
+    <string name="confirm_reset_title">Reset the game?</string>
+    <string name="confirm_reset_body">This clears every check-in and resets the odds. It can\'t be undone.</string>
+    <string name="confirm_reset_action">Reset game</string>
+    <string name="confirm_clear_title">Clear this round\'s scans?</string>
+    <string name="confirm_clear_body">This removes the cards scanned for the current round. Check-ins and odds are kept.</string>
+    <string name="confirm_clear_action">Clear scans</string>
+    <string name="cancel">Cancel</string>
 </resources>

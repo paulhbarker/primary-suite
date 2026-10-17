@@ -13,10 +13,14 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.primarysuite.app.R
-import com.primarysuite.app.catalog.Game
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.config.serverConfig
+import com.primarysuite.app.core.nfc.NfcHub
+import com.primarysuite.app.core.nfc.NfcState
+import com.primarysuite.app.core.ui.AndroidStringProvider
 import com.primarysuite.app.core.wifi.WifiConnectionState
+import com.primarysuite.app.games.luckytap.LuckyTapTags
+import com.primarysuite.app.testing.FakeGameConnection
 import com.primarysuite.app.testing.FakeServerProbe
 import com.primarysuite.app.testing.FakeWifiConnector
 import com.primarysuite.app.testing.InMemoryConnectionSettings
@@ -45,8 +49,11 @@ class NavigationTest {
     private val settings = InMemoryConnectionSettings()
     private val wifi = FakeWifiConnector()
     private val probe = FakeServerProbe()
+    private val socket = FakeGameConnection()
+    private val nfc = NfcHub()
+    private val socketSlugs = mutableListOf<String>()
 
-    private val opened = mutableListOf<Game>()
+    private var nfcSettingsOpened = 0
     private val saved = mutableListOf<SettingsSaved>()
     private var wifiRetries = 0
 
@@ -55,8 +62,11 @@ class NavigationTest {
         compose.setContent {
             PrimarySuiteTheme {
                 PrimarySuiteNavHost(
-                    viewModelFactory = suiteViewModelFactory(settings, wifi, probe),
-                    onOpenTools = { opened += it },
+                    viewModelFactory = suiteViewModelFactory(
+                        settings, wifi, probe, nfc, AndroidStringProvider(context),
+                        socketFactory = { slug, _, _ -> socketSlugs += slug; socket },
+                    ),
+                    onEnableNfc = { nfcSettingsOpened++ },
                     onWifiRetry = { wifiRetries++ },
                     onSettingsSaved = { saved += it },
                 )
@@ -78,11 +88,34 @@ class NavigationTest {
     }
 
     @Test
-    fun `Lucky Tap opens its tools`() {
+    fun `Lucky Tap opens its tools on its own socket, closed on the way out`() {
         compose.onNodeWithTag(HomeTags.game("lucky-tap")).performClick()
 
-        assertEquals(listOf("lucky-tap"), opened.map { it.slug })
+        compose.onNodeWithTag(LuckyTapTags.READ).assertIsDisplayed()
+        assertEquals(listOf("lucky-tap"), socketSlugs)
+        assertEquals(false, socket.shutdownCalled)
+
+        pressBack()
         assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
+    }
+
+    @Test
+    fun `Lucky Tap with NFC off offers to turn it on`() {
+        nfc.setState(NfcState.DISABLED)
+        compose.onNodeWithTag(HomeTags.game("lucky-tap")).performClick()
+
+        compose.onNodeWithTag(LuckyTapTags.ENABLE_NFC).performClick()
+
+        assertEquals(1, nfcSettingsOpened)
+    }
+
+    @Test
+    fun `Lucky Tap on a phone without NFC says so`() {
+        nfc.setState(NfcState.UNAVAILABLE)
+        compose.onNodeWithTag(HomeTags.game("lucky-tap")).performClick()
+
+        compose.onNodeWithText(s(R.string.nfc_no_hardware)).assertIsDisplayed()
     }
 
     @Test
@@ -90,7 +123,7 @@ class NavigationTest {
         compose.onNodeWithTag(HomeTags.game("jeopardy")).performClick()
 
         compose.onNodeWithText(s(R.string.coming_soon_body, "Jeopardy!")).assertIsDisplayed()
-        assertEquals(emptyList<Game>(), opened)
+        assertEquals(emptyList<String>(), socketSlugs)
 
         pressBack()
         assertOnHome()

@@ -4,6 +4,9 @@ import com.primarysuite.app.core.config.ConnectionDefaults
 import com.primarysuite.app.core.config.ConnectionSettings
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.net.ServerProbe
+import com.primarysuite.app.core.nfc.NfcScanResult
+import com.primarysuite.app.core.nfc.NfcTag
+import com.primarysuite.app.core.nfc.NfcWriteResult
 import com.primarysuite.app.core.net.GameConnection
 import com.primarysuite.app.core.net.SocketEvent
 import com.primarysuite.app.core.net.WebSocketConnectionState
@@ -98,5 +101,22 @@ class FakeServerProbe(var reachable: Boolean = true, var latencyMs: Long = 0) : 
         checked += server
         if (latencyMs > 0) kotlinx.coroutines.delay(latencyMs)
         return reachable
+    }
+}
+
+/** A card that returns [read] and records what was written to it. */
+class FakeNfcTag(
+    private val read: NfcScanResult = NfcScanResult(success = true, data = "42"),
+    private val writeResult: NfcWriteResult = NfcWriteResult(success = true),
+) : NfcTag {
+    val writes = mutableListOf<String>()
+    override fun readText(): NfcScanResult = read
+    override fun writeText(text: String): NfcWriteResult {
+        writes += text
+        return writeResult
+    }
+
+    companion object {
+        fun card(number: Int) = FakeNfcTag(NfcScanResult(success = true, data = number.toString()))
     }
 }

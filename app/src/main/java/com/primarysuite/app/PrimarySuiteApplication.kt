@@ -6,6 +6,9 @@ import com.primarysuite.app.core.config.AppPreferences
 import com.primarysuite.app.core.config.ConnectionSettings
 import com.primarysuite.app.core.net.HttpServerProbe
 import com.primarysuite.app.core.net.ServerProbe
+import com.primarysuite.app.core.nfc.NfcHub
+import com.primarysuite.app.core.ui.AndroidStringProvider
+import com.primarysuite.app.core.ui.StringProvider
 import com.primarysuite.app.core.wifi.WifiConnector
 import com.primarysuite.app.core.wifi.WifiController
 
@@ -20,6 +23,8 @@ class AppContainer(context: Context) {
     val wifiController: WifiController by lazy { WifiController(appContext) }
     val wifi: WifiConnector get() = wifiController
     val serverProbe: ServerProbe by lazy { HttpServerProbe() }
+    val nfc: NfcHub = NfcHub()
+    val strings: StringProvider = AndroidStringProvider(appContext)
 }
 
 class PrimarySuiteApplication : Application() {

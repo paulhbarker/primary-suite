@@ -62,6 +62,25 @@ object NfcHelper {
     }
 }
 
+/** A tag delivered to the activity in an NFC intent. */
+class AndroidNfcTag(private val intent: Intent, private val tag: Tag) : NfcTag {
+    override fun readText(): NfcScanResult = NfcHelper.readFromIntent(intent)
+    override fun writeText(text: String): NfcWriteResult = NfcHelper.writeToTag(tag, text)
+
+    companion object {
+        /** The tag in an NFC intent, or null if the intent carries none. */
+        fun from(intent: Intent): AndroidNfcTag? {
+            val tag: Tag? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            }
+            return tag?.let { AndroidNfcTag(intent, it) }
+        }
+    }
+}
+
 data class NfcWriteResult(val success: Boolean, val error: String? = null)
 
 data class NfcScanResult(val success: Boolean, val data: String? = null, val error: String? = null)

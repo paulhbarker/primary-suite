@@ -65,24 +65,37 @@ class WifiController(context: Context) : WifiConnector {
     private var lastPsk: String? = null
     private var retryRunnable: Runnable? = null
 
-    // Legacy receiver for pre-Q only
+    // Legacy receiver for pre-Q only. API 29+ learns the same from its NetworkCallback.
     private val wifiStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (WifiManager.NETWORK_STATE_CHANGED_ACTION != intent.action) return
+            when (intent.action) {
+                WifiManager.WIFI_STATE_CHANGED_ACTION -> {
+                    val wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN)
+                    if (wifiState == WifiManager.WIFI_STATE_DISABLED && currentTargetSsid != null) {
+                        Log.w(TAG, "Legacy broadcast: WiFi turned off")
+                        _connectionStatus.value = WifiConnectionState.DISCONNECTED
+                    }
+                }
+                WifiManager.NETWORK_STATE_CHANGED_ACTION -> {
+                    @Suppress("DEPRECATION")
+                    val networkInfo = IntentCompat.getParcelableExtra(
+                        intent, WifiManager.EXTRA_NETWORK_INFO, android.net.NetworkInfo::class.java
+                    ) ?: return
+                    @Suppress("DEPRECATION")
+                    val currentSsid = wifiManager.connectionInfo?.ssid?.replace("\"", "")
 
-            @Suppress("DEPRECATION")
-            val networkInfo = IntentCompat.getParcelableExtra(
-                intent, WifiManager.EXTRA_NETWORK_INFO, android.net.NetworkInfo::class.java
-            )
-            @Suppress("DEPRECATION")
-            val currentSsid = wifiManager.connectionInfo?.ssid?.replace("\"", "")
-
-            if ((networkInfo?.isConnected == true) &&
-                networkInfo.typeName.equals("WIFI", ignoreCase = true)
-            ) {
-                Log.d(TAG, "Legacy broadcast: Connected to $currentSsid, target=$currentTargetSsid")
-                if (currentSsid == currentTargetSsid) {
-                    _connectionStatus.value = WifiConnectionState.CONNECTED
+                    @Suppress("DEPRECATION")
+                    val onTarget = networkInfo.isConnected &&
+                        networkInfo.typeName.equals("WIFI", ignoreCase = true) &&
+                        currentSsid == currentTargetSsid
+                    if (onTarget) {
+                        Log.d(TAG, "Legacy broadcast: Connected to $currentSsid")
+                        _connectionStatus.value = WifiConnectionState.CONNECTED
+                    } else if (_connectionStatus.value == WifiConnectionState.CONNECTED) {
+                        // Dropped, or the phone moved to another network.
+                        Log.w(TAG, "Legacy broadcast: Lost $currentTargetSsid")
+                        _connectionStatus.value = WifiConnectionState.DISCONNECTED
+                    }
                 }
             }
         }
@@ -187,7 +200,10 @@ class WifiController(context: Context) : WifiConnector {
             ContextCompat.registerReceiver(
                 context,
                 wifiStateReceiver,
-                IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION),
+                IntentFilter().apply {
+                    addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION)
+                    addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
+                },
                 RECEIVER_NOT_EXPORTED,
             )
             isReceiverRegistered = true

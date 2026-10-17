@@ -34,23 +34,23 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 
 | Component | File | Responsibility |
 |---|---|---|
-| **MainActivity** | `MainActivity.kt` | Compose host: game list, settings, app-wide WiFi setup |
+| **MainActivity** | `MainActivity.kt` | The only activity: Compose host, app-wide WiFi setup, NFC adapter and tag dispatch |
 | **PrimarySuiteNavHost** | `ui/PrimarySuiteNavHost.kt` | Routes: home, settings, `game/{slug}` |
 | **HomeViewModel** | `ui/home/` | WiFi and game server status, the game list |
 | **SettingsViewModel** | `ui/settings/` | WiFi and server overrides with validation |
 | **GameCatalog** | `catalog/GameCatalog.kt` | The games the suite lists, and which have tools |
-| **LuckyTapActivity** | `games/luckytap/` | Lucky Tap scanning screen (XML, moving to Compose) and `NfcAppViewModel` |
+| **LuckyTapScreen / LuckyTapViewModel** | `games/luckytap/` | Lucky Tap scanning station: read, check-in/out, write, reset, clear |
 | **WebSocketManager** | `core/net/WebSocketManager.kt` | One game's socket (`/ws/{slug}`): connect, send, receive, reconnect with backoff |
 | **ServerProbe** | `core/net/ServerProbe.kt` | HTTP check that the game server answers |
 | **GameMessage** | `core/protocol/GameMessage.kt` | `{type, payload}` encoding and decoding |
 | **WifiController / WifiSetupCoordinator** | `core/wifi/` | Joins the event network; permission and settings prompts |
-| **NfcHelper / NdefCodec** | `core/nfc/` | NDEF tag I/O and text-record parsing |
+| **NfcHub / NfcHelper / NdefCodec** | `core/nfc/` | NFC state and tag routing, NDEF tag I/O, text-record parsing |
 | **AppPreferences / ServerConfig** | `core/config/` | Settings storage (`EncryptedSharedPreferences` for the password) and server URLs |
 
 ### Adding a game
 
 1. Add its screen under `games/<slug>/`, using `gameSocket(slug, ...)` for its channel.
-2. Set `hasTools = true` for it in `GameCatalog` and route it from the home screen.
+2. Set `hasTools = true` for it in `GameCatalog` and add its route in `PrimarySuiteNavHost` (the `game/{slug}` destination).
 
 ## Requirements
 

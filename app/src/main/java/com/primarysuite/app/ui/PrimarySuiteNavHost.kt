@@ -17,7 +17,14 @@ import com.primarysuite.app.R
 import com.primarysuite.app.catalog.Game
 import com.primarysuite.app.catalog.GameCatalog
 import com.primarysuite.app.core.config.ConnectionSettings
+import com.primarysuite.app.core.net.GameConnection
 import com.primarysuite.app.core.net.ServerProbe
+import com.primarysuite.app.core.net.gameSocket
+import com.primarysuite.app.core.nfc.NfcHub
+import com.primarysuite.app.core.ui.StringProvider
+import com.primarysuite.app.games.luckytap.LuckyTapRoute
+import com.primarysuite.app.games.luckytap.LuckyTapViewModel
+import kotlinx.coroutines.CoroutineScope
 import com.primarysuite.app.core.wifi.WifiConnector
 import com.primarysuite.app.ui.comingsoon.ComingSoonScreen
 import com.primarysuite.app.ui.home.HomeScreen
@@ -33,27 +40,37 @@ object Routes {
     fun game(slug: String) = "game/$slug"
 }
 
+/** Opens the `/ws/{slug}` socket for a game. Tests pass a fake. */
+typealias SocketFactory = (slug: String, scope: CoroutineScope, canConnect: () -> Boolean) -> GameConnection
+
 /** Builds the screens' view models from the app's dependencies (or fakes in tests). */
 fun suiteViewModelFactory(
     settings: ConnectionSettings,
     wifi: WifiConnector,
     probe: ServerProbe,
+    nfc: NfcHub,
+    strings: StringProvider,
     games: List<Game> = GameCatalog.games,
+    socketFactory: SocketFactory = { slug, scope, canConnect -> gameSocket(slug, settings, scope, canConnect) },
 ): ViewModelProvider.Factory = viewModelFactory {
     initializer { HomeViewModel(settings, wifi, probe, games) }
     initializer { SettingsViewModel(settings) }
+    initializer {
+        LuckyTapViewModel(strings, wifi, nfc, { scope, canConnect ->
+            socketFactory(LuckyTapViewModel.GAME_SLUG, scope, canConnect)
+        })
+    }
 }
 
 /**
- * @param onOpenTools opens a game that has tools. Lucky Tap is still a separate
- *   activity until its Compose screen lands, so the caller decides how to open it.
+ * @param onEnableNfc opens the system NFC settings.
  * @param onWifiRetry asks again for WiFi permissions or prompts the user declined.
  * @param onSettingsSaved lets the caller rejoin WiFi when the network changed.
  */
 @Composable
 fun PrimarySuiteNavHost(
     viewModelFactory: ViewModelProvider.Factory,
-    onOpenTools: (Game) -> Unit,
+    onEnableNfc: () -> Unit,
     onWifiRetry: () -> Unit,
     onSettingsSaved: (SettingsSaved) -> Unit,
     games: List<Game> = GameCatalog.games,
@@ -65,9 +82,7 @@ fun PrimarySuiteNavHost(
             val state by home.uiState.collectAsStateWithLifecycle()
             HomeScreen(
                 state = state,
-                onGameClick = { game ->
-                    if (game.hasTools) onOpenTools(game) else navController.navigate(Routes.game(game.slug))
-                },
+                onGameClick = { game -> navController.navigate(Routes.game(game.slug)) },
                 onSettingsClick = { navController.navigate(Routes.SETTINGS) },
                 onWifiClick = onWifiRetry,
             )
@@ -109,10 +124,15 @@ fun PrimarySuiteNavHost(
 
         composable(Routes.GAME) { entry ->
             val game = entry.arguments?.getString("slug")?.let { slug -> games.firstOrNull { it.slug == slug } }
-            if (game == null) {
-                navController.popBackStack()
-            } else {
-                ComingSoonScreen(game, onBack = { navController.popBackStack() })
+            val onBack: () -> Unit = { navController.popBackStack() }
+            when {
+                game == null -> onBack()
+                game.slug == GameCatalog.LUCKY_TAP -> {
+                    // Scoped to this destination: the socket closes when the screen does.
+                    val vm: LuckyTapViewModel = viewModel(factory = viewModelFactory)
+                    LuckyTapRoute(vm, onBack = onBack, onEnableNfc = onEnableNfc)
+                }
+                else -> ComingSoonScreen(game, onBack = onBack)
             }
         }
     }
