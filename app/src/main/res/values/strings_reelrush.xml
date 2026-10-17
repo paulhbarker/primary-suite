@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Reel Rush admin. Labels follow the web admin. -->
+    <string name="reelrush_title">Reel Rush</string>
+    <string name="reelrush_connecting">Connecting…</string>
+    <string name="reelrush_tab_game">Game</string>
+    <string name="reelrush_tab_settings">Settings</string>
+
+    <string name="reelrush_phase_idle">Idle</string>
+    <string name="reelrush_phase_lobby">Lobby: players press their button to join</string>
+    <string name="reelrush_phase_intro">Countdown</string>
+    <string name="reelrush_phase_spinning">Spinning: a press now is a foul</string>
+    <string name="reelrush_phase_window">Matched: waiting for presses</string>
+    <string name="reelrush_phase_results">Round results</string>
+    <string name="reelrush_phase_final">Final standings</string>
+    <string name="reelrush_sudden_death">Sudden death</string>
+    <string name="reelrush_round_of">Round %1$d of %2$d</string>
+
+    <string name="reelrush_open_lobby">Open the lobby</string>
+    <string name="reelrush_back_to_lobby">Back to the lobby</string>
+    <string name="reelrush_start_needs">Start (needs %1$d players, %2$d in)</string>
+    <string name="reelrush_start_with">Start with %1$d players</string>
+    <string name="reelrush_close_round">Close round (anyone left gets 0)</string>
+    <string name="reelrush_next_round">Next round</string>
+    <string name="reelrush_replay_the_round">Replay the round</string>
+    <string name="reelrush_show_winner">Show the winner</string>
+    <string name="reelrush_another_sudden_death">Another sudden death</string>
+    <string name="reelrush_finish_game">Finish the game</string>
+    <string name="reelrush_replay_round">Replay round</string>
+    <string name="reelrush_end_game">End game</string>
+    <string name="reelrush_reset">Reset</string>
+
+    <string name="reelrush_end_game_title">End the game?</string>
+    <string name="reelrush_end_game_message">End the game now and show the standings?</string>
+    <string name="reelrush_reset_title">Reset everything?</string>
+    <string name="reelrush_reset_message">Reset everything? Players and scores are cleared.</string>
+
+    <string name="reelrush_players">Players</string>
+    <string name="reelrush_not_joined">not joined</string>
+    <string name="reelrush_status_waiting">waiting</string>
+    <string name="reelrush_status_pressed">pressed</string>
+    <string name="reelrush_status_foul">FOUL</string>
+    <string name="reelrush_status_closed">closed out</string>
+    <string name="reelrush_pressed_detail">#%1$d %2$s</string>
+    <string name="reelrush_fouls">%1$dF</string>
+    <string name="reelrush_remove">Remove</string>
+
+    <string name="reelrush_round_title">Round %1$d</string>
+    <string name="reelrush_voided">voided (everyone fouled)</string>
+    <string name="reelrush_foul">FOUL</string>
+    <string name="reelrush_points">+%1$d</string>
+    <string name="reelrush_wins">%1$s wins</string>
+    <string name="reelrush_wins_sudden_death">%1$s wins (sudden death)</string>
+    <string name="reelrush_score_pts">%1$d pts</string>
+    <string name="reelrush_best">best %1$s</string>
+    <string name="reelrush_title_line">%1$s: %2$s (%3$s)</string>
+
+    <string name="reelrush_set_reels">Reels</string>
+    <string name="reelrush_set_rounds">Rounds</string>
+    <string name="reelrush_set_hard_mode">Hard mode</string>
+    <string name="reelrush_set_hard_mode_hint">Adds look-alike fruit as decoys.</string>
+    <string name="reelrush_set_assist">Assist signal</string>
+    <string name="reelrush_set_assist_hint">Payline lamp and a ding just after the match.</string>
+    <string name="reelrush_set_row_decoys">Row decoys</string>
+    <string name="reelrush_set_row_decoys_hint">Sometimes a full match on the top or bottom row (it doesn’t count).</string>
+    <string name="reelrush_set_round_min">Shortest round (s)</string>
+    <string name="reelrush_set_round_max">Longest round (s)</string>
+    <string name="reelrush_set_near_misses">Most near-misses per round</string>
+    <string name="reelrush_set_near_misses_hint">Each round picks 0 up to this, and short rounds fit fewer</string>
+    <string name="reelrush_set_spin_speed">Spin speed</string>
+    <string name="reelrush_set_spin_speed_hint">Symbols per second</string>
+    <string name="reelrush_set_dwell_min">Shortest pause (s)</string>
+    <string name="reelrush_set_dwell_max">Longest pause (s)</string>
+    <string name="reelrush_set_display_lag">Display lag (ms)</string>
+    <string name="reelrush_set_display_lag_hint">Projector latency. Presses earlier than the match plus this are fouls.</string>
+    <string name="reelrush_set_volume">Volume</string>
+    <string name="reelrush_set_names">Player names</string>
+    <string name="reelrush_set_player_n">Player %1$d</string>
+    <string name="reelrush_set_save">Save settings</string>
+    <string name="reelrush_set_discard">Discard</string>
+    <string name="reelrush_set_note">Reel and round changes apply from the next round.</string>
+    <string name="reelrush_range_hint">%1$s to %2$s</string>
+    <string name="reelrush_problem_not_a_number">Enter a number</string>
+    <string name="reelrush_problem_out_of_range">Must be %1$s to %2$s</string>
+    <string name="reelrush_problem_max_below_min">Can’t be shorter than the shortest</string>
+</resources>
