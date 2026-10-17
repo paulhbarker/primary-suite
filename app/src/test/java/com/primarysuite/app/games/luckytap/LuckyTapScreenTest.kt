@@ -28,6 +28,7 @@ import com.primarysuite.app.testing.FakeGameConnection
 import com.primarysuite.app.testing.FakeNfcTag
 import com.primarysuite.app.testing.FakeWifiConnector
 import com.primarysuite.app.ui.theme.PrimarySuiteTheme
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -57,7 +58,8 @@ class LuckyTapScreenTest {
 
     @Before
     fun setUp() {
-        vm = LuckyTapViewModel(AndroidStringProvider(context), wifi, nfc, { _, _ -> socket })
+        // NFC I/O runs inline: a real IO thread races the assertions on slow CI machines.
+        vm = LuckyTapViewModel(AndroidStringProvider(context), wifi, nfc, { _, _ -> socket }, ioDispatcher = Dispatchers.Unconfined)
         compose.setContent {
             PrimarySuiteTheme { LuckyTapRoute(vm, onBack = { backs++ }, onEnableNfc = {}) }
         }
