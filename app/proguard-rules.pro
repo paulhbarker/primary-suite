@@ -27,5 +27,5 @@
 
 # --- Project-specific ---
 # Keep WebSocket class and its anonymous inner WebSocketListener
--keep class com.primarysuite.app.WebSocketManager { *; }
--keep class com.primarysuite.app.WebSocketManager$* { *; }
+-keep class com.primarysuite.app.core.net.WebSocketManager { *; }
+-keep class com.primarysuite.app.core.net.WebSocketManager$* { *; }

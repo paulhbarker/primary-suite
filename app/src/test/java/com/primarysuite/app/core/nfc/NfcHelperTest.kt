@@ -1,4 +1,4 @@
-package com.primarysuite.app
+package com.primarysuite.app.core.nfc
 
 import android.content.Intent
 import android.nfc.NdefMessage

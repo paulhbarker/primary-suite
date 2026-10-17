@@ -1,4 +1,4 @@
-package com.primarysuite.app
+package com.primarysuite.app.core.nfc
 
 import android.content.Intent
 import android.nfc.NdefMessage
@@ -8,7 +8,6 @@ import android.nfc.Tag
 import android.nfc.tech.Ndef
 import android.os.Build
 import android.util.Log
-import java.nio.charset.Charset
 
 /**
  * Stateless helper that encapsulates low-level NFC read/write operations,
@@ -54,16 +53,7 @@ object NfcHelper {
         }
 
         return try {
-            val record = rawMessages[0].records[0]
-            val payload = record.payload
-            val textEncoding = if ((payload[0].toInt() and 128) == 0) "UTF-8" else "UTF-16"
-            val languageCodeLength = payload[0].toInt() and 63
-            val text = String(
-                payload,
-                languageCodeLength + 1,
-                payload.size - languageCodeLength - 1,
-                Charset.forName(textEncoding),
-            )
+            val text = NdefCodec.decodeText(rawMessages[0].records[0].payload)
             NfcScanResult(success = true, data = text)
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing NDEF data", e)
@@ -73,3 +63,5 @@ object NfcHelper {
 }
 
 data class NfcWriteResult(val success: Boolean, val error: String? = null)
+
+data class NfcScanResult(val success: Boolean, val data: String? = null, val error: String? = null)

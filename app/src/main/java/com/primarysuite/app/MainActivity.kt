@@ -47,6 +47,18 @@ import androidx.core.content.IntentCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.primarysuite.app.core.config.AppPreferences
+import com.primarysuite.app.core.config.effectiveWifiSsid
+import com.primarysuite.app.core.net.WebSocketConnectionState
+import com.primarysuite.app.core.nfc.NfcHelper
+import com.primarysuite.app.core.ui.UiEvent
+import com.primarysuite.app.core.wifi.WifiConnectionState
+import com.primarysuite.app.core.wifi.WifiController
+import com.primarysuite.app.games.luckytap.AppUiState
+import com.primarysuite.app.games.luckytap.CardNumber
+import com.primarysuite.app.games.luckytap.NfcAppViewModel
+import com.primarysuite.app.games.luckytap.NfcOperationMode
+import com.primarysuite.app.games.luckytap.NfcState
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -97,7 +109,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // --- Dependencies ---
-    private val viewModel: NfcAppViewModel by viewModels()
+    private val viewModel: NfcAppViewModel by viewModels { NfcAppViewModel.Factory }
     private lateinit var wifiController: WifiController
     private val appPreferences: AppPreferences by lazy { AppPreferences.getInstance(this) }
 
@@ -198,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                     )
                     @Suppress("DEPRECATION")
                     if (networkInfo?.isConnected == true) {
-                        val isTarget = wifiController.isCurrentlyConnectedToTarget(appPreferences.getEffectiveWifiSsid())
+                        val isTarget = wifiController.isConnectedTo(appPreferences.effectiveWifiSsid)
                         viewModel.setWifiConnected(connected = isTarget)
                     } else if (networkInfo?.isConnected == false) {
                         viewModel.setWifiConnected(connected = false)
@@ -423,11 +435,9 @@ class MainActivity : AppCompatActivity() {
     // ========================================================================
 
     private fun setupViewModelObservers() {
-        // Bridge WifiController LiveData (not a suspend collector)
-        observeWifiControllerStatus()
-
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { collectWifiControllerStatus() }
                 launch { collectUiState() }
                 launch { collectNumberForSuccessDisplay() }
                 launch { collectIsWriteButtonEnabled() }
@@ -537,7 +547,7 @@ class MainActivity : AppCompatActivity() {
                 wifiStatusValue.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.status_connected))
             } else {
                 // Show spinner when we're actively trying to connect (not in ERROR/idle)
-                val isConnecting = wifiController.connectionStatus.value == WifiController.WifiConnectionState.CONNECTING
+                val isConnecting = wifiController.connectionState.value == WifiConnectionState.CONNECTING
                 wifiSpinner.visibility = if (isConnecting) View.VISIBLE else View.GONE
                 wifiStatusDot.visibility = if (isConnecting) View.GONE else View.VISIBLE
                 if (!isConnecting) {
@@ -551,29 +561,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Observe the WifiController's LiveData and bridge into the ViewModel. */
-    private fun observeWifiControllerStatus() {
-        wifiController.connectionStatus.observe(this) { state ->
-            val isConnected = state == WifiController.WifiConnectionState.CONNECTED
+    /** Bridge the WifiController's state into the ViewModel and the connection card. */
+    private suspend fun collectWifiControllerStatus() {
+        wifiController.connectionState.collect { state ->
+            val isConnected = state == WifiConnectionState.CONNECTED
             viewModel.setWifiConnected(isConnected)
 
             // Update connection card spinner/dot for WiFi
             when (state) {
-                WifiController.WifiConnectionState.CONNECTING -> {
+                WifiConnectionState.CONNECTING -> {
                     wifiSpinner.visibility = View.VISIBLE
                     wifiStatusDot.visibility = View.GONE
                     wifiStatusValue.text = getString(R.string.connection_value_connecting)
                     wifiStatusValue.setTextColor(ContextCompat.getColor(this, R.color.status_connecting))
                 }
-                WifiController.WifiConnectionState.CONNECTED -> {
+                WifiConnectionState.CONNECTED -> {
                     wifiSpinner.visibility = View.GONE
                     wifiStatusDot.visibility = View.VISIBLE
                     wifiStatusDot.backgroundTintList = ContextCompat.getColorStateList(this, R.color.status_connected)
                     wifiStatusValue.text = getString(R.string.connection_value_connected)
                     wifiStatusValue.setTextColor(ContextCompat.getColor(this, R.color.status_connected))
                 }
-                WifiController.WifiConnectionState.ERROR,
-                WifiController.WifiConnectionState.DISCONNECTED -> {
+                WifiConnectionState.ERROR,
+                WifiConnectionState.DISCONNECTED -> {
                     wifiSpinner.visibility = View.GONE
                     wifiStatusDot.visibility = View.VISIBLE
                     wifiStatusDot.backgroundTintList = ContextCompat.getColorStateList(this, R.color.status_disconnected)
@@ -582,7 +592,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            if (state == WifiController.WifiConnectionState.ERROR) {
+            if (state == WifiConnectionState.ERROR) {
                 val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
                 if (!wifiManager.isWifiEnabled) {
                     promptEnableWifi()
@@ -663,8 +673,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleNfcWrite(tag: Tag) {
         val numberToWriteStr = editTextNumber.text.toString()
-        val num = numberToWriteStr.toIntOrNull()
-        if (num == null || num !in 1..100) {
+        val num = CardNumber.parse(numberToWriteStr)
+        if (num == null) {
             viewModel.onNfcTagScannedForWrite(
                 tagData = numberToWriteStr,
                 success = false,
@@ -672,9 +682,9 @@ class MainActivity : AppCompatActivity() {
             )
             return
         }
-        val result = NfcHelper.writeToTag(tag, numberToWriteStr)
+        val result = NfcHelper.writeToTag(tag, num.toString())
         viewModel.onNfcTagScannedForWrite(
-            tagData = numberToWriteStr,
+            tagData = num.toString(),
             success = result.success,
             errorMessage = result.error,
         )
@@ -689,9 +699,9 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isWifiConnectedToTarget.value) return
 
         // Don't restart if WifiController is already actively connecting/retrying
-        val wifiState = wifiController.connectionStatus.value
-        if (wifiState == WifiController.WifiConnectionState.CONNECTING ||
-            wifiState == WifiController.WifiConnectionState.CONNECTED) return
+        val wifiState = wifiController.connectionState.value
+        if (wifiState == WifiConnectionState.CONNECTING ||
+            wifiState == WifiConnectionState.CONNECTED) return
 
         if (!arePermissionsGranted()) {
             viewModel.setWifiConnected(connected = false)
@@ -720,7 +730,7 @@ class MainActivity : AppCompatActivity() {
         }
         val password = viewModel.getEffectiveWifiPasswordForActivity()
         Log.i("MainActivity", "Initiating WiFi connection to '$ssid'")
-        wifiController.connectToWifi(applicationContext, ssid, password)
+        wifiController.connect(ssid, password)
     }
 
     private fun updateNfcState() {

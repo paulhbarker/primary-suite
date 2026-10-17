@@ -1,4 +1,4 @@
-package com.primarysuite.app
+package com.primarysuite.app.core.config
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,10 +6,15 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.primarysuite.app.BuildConfig
 import java.io.File
 import java.security.KeyStore
 
-class AppPreferences private constructor(context: Context) {
+/**
+ * The real [ConnectionSettings] store. Plain overrides live in SharedPreferences;
+ * the WiFi password lives in EncryptedSharedPreferences.
+ */
+class AppPreferences private constructor(context: Context) : ConnectionSettings {
 
     companion object {
         private const val TAG = "AppPreferences"
@@ -20,10 +25,13 @@ class AppPreferences private constructor(context: Context) {
         private const val KEY_WS_IP_OVERRIDE = "ws_ip_override"
         private const val KEY_WS_PORT_OVERRIDE = "ws_port_override"
 
-        val DEFAULT_WIFI_SSID: String get() = BuildConfig.DEFAULT_WIFI_SSID
-        val DEFAULT_WIFI_PASSWORD: String get() = BuildConfig.DEFAULT_WIFI_PASSWORD
-        val DEFAULT_WS_IP: String get() = BuildConfig.DEFAULT_WS_IP
-        val DEFAULT_WS_PORT: String get() = BuildConfig.DEFAULT_WS_PORT
+        /** Values baked in from local.properties or CI secrets at build time. */
+        val BUILD_DEFAULTS = ConnectionDefaults(
+            wifiSsid = BuildConfig.DEFAULT_WIFI_SSID,
+            wifiPassword = BuildConfig.DEFAULT_WIFI_PASSWORD,
+            serverHost = BuildConfig.DEFAULT_WS_IP,
+            serverPort = BuildConfig.DEFAULT_WS_PORT,
+        )
 
         @Volatile
         private var INSTANCE: AppPreferences? = null
@@ -96,33 +104,21 @@ class AppPreferences private constructor(context: Context) {
         }
     }
 
-    // WiFi
-    var wifiSsidOverride: String?
+    override val defaults: ConnectionDefaults = BUILD_DEFAULTS
+
+    override var wifiSsidOverride: String?
         get() = sharedPreferences.getString(KEY_WIFI_SSID_OVERRIDE, null)
         set(value) = sharedPreferences.edit { putString(KEY_WIFI_SSID_OVERRIDE, value) }
 
-    var wifiPasswordOverride: String?
+    override var wifiPasswordOverride: String?
         get() = securePreferences.getString(KEY_WIFI_PASSWORD_OVERRIDE, null)
         set(value) = securePreferences.edit { putString(KEY_WIFI_PASSWORD_OVERRIDE, value) }
 
-    fun getEffectiveWifiSsid(): String = wifiSsidOverride ?: DEFAULT_WIFI_SSID
-    fun getEffectiveWifiPassword(): String = wifiPasswordOverride ?: DEFAULT_WIFI_PASSWORD
-
-    // WebSocket
-    var wsIpOverride: String?
+    override var serverHostOverride: String?
         get() = sharedPreferences.getString(KEY_WS_IP_OVERRIDE, null)
         set(value) = sharedPreferences.edit { putString(KEY_WS_IP_OVERRIDE, value) }
 
-    var wsPortOverride: String?
+    override var serverPortOverride: String?
         get() = sharedPreferences.getString(KEY_WS_PORT_OVERRIDE, null)
         set(value) = sharedPreferences.edit { putString(KEY_WS_PORT_OVERRIDE, value) }
-
-    fun getEffectiveWsIp(): String = wsIpOverride ?: DEFAULT_WS_IP
-    fun getEffectiveWsPort(): String = wsPortOverride ?: DEFAULT_WS_PORT
-
-    fun getEffectiveWebSocketUrl(): String {
-        val ip = getEffectiveWsIp()
-        val port = getEffectiveWsPort()
-        return "ws://$ip:$port/ws/lucky-tap"
-    }
 }

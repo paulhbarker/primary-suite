@@ -35,12 +35,13 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 | Component | File | Responsibility |
 |---|---|---|
 | **MainActivity** | `MainActivity.kt` | UI, NFC foreground dispatch, permissions, WiFi/NFC prompts |
-| **SettingsActivity** | `SettingsActivity.kt` | Runtime configuration overrides for WiFi and WebSocket |
-| **NfcAppViewModel** | `NfcAppViewModel.kt` | UI state machine, connection orchestration, WebSocket message composition |
-| **WebSocketManager** | `WebSocketManager.kt` | OkHttp WebSocket lifecycle, send/receive, retry with exponential backoff |
-| **WifiController** | `WifiController.kt` | WiFi connection via `WifiNetworkSpecifier` (API 29+) or `WifiConfiguration` (legacy) |
-| **NfcHelper** | `NfcHelper.kt` | Stateless NFC read/write operations (NDEF) |
-| **AppPreferences** | `AppPreferences.kt` | Settings persistence with `EncryptedSharedPreferences` for secrets |
+| **SettingsActivity** | `SettingsActivity.kt` | Runtime overrides for WiFi and the server address |
+| **NfcAppViewModel** | `games/luckytap/NfcAppViewModel.kt` | Lucky Tap scanning state machine and messages |
+| **WebSocketManager** | `core/net/WebSocketManager.kt` | One game's socket (`/ws/{slug}`): connect, send, receive, reconnect with backoff |
+| **GameMessage** | `core/protocol/GameMessage.kt` | `{type, payload}` encoding and decoding |
+| **WifiController** | `core/wifi/WifiController.kt` | Joins the event network via `WifiNetworkSpecifier` (API 29+) or `WifiConfiguration` (legacy) |
+| **NfcHelper / NdefCodec** | `core/nfc/` | NDEF tag I/O and text-record parsing |
+| **AppPreferences / ServerConfig** | `core/config/` | Settings storage (`EncryptedSharedPreferences` for the password) and server URLs |
 
 ## Requirements
 

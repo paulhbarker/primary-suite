@@ -1,9 +1,26 @@
-package com.primarysuite.app
+package com.primarysuite.app.games.luckytap
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.primarysuite.app.R
+import com.primarysuite.app.core.config.AppPreferences
+import com.primarysuite.app.core.config.ConnectionSettings
+import com.primarysuite.app.core.config.effectiveWifiPassword
+import com.primarysuite.app.core.config.effectiveWifiSsid
+import com.primarysuite.app.core.net.GameConnection
+import com.primarysuite.app.core.net.SocketEvent
+import com.primarysuite.app.core.net.WebSocketConnectionState
+import com.primarysuite.app.core.net.gameSocket
+import com.primarysuite.app.core.nfc.NfcScanResult
+import com.primarysuite.app.core.protocol.GameMessage
+import com.primarysuite.app.core.ui.AndroidStringProvider
+import com.primarysuite.app.core.ui.StringProvider
+import com.primarysuite.app.core.ui.UiEvent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,35 +38,54 @@ import org.json.JSONObject
 enum class NfcOperationMode { NONE, WRITE, READ, CHECK_IN, CHECK_OUT }
 enum class AppUiState { NORMAL, SCANNING, SUCCESS_DISPLAY }
 enum class NfcState { AVAILABLE, DISABLED, UNAVAILABLE }
-enum class WebSocketConnectionState { DISCONNECTED, CONNECTING, CONNECTED, CLOSING }
 
-// --- Data classes ---
-data class NfcScanResult(val success: Boolean, val data: String? = null, val error: String? = null)
+/** Opens the game socket. `canConnect` reports whether WiFi is up. */
+typealias GameSocketFactory = (scope: CoroutineScope, canConnect: () -> Boolean) -> GameConnection
 
-class NfcAppViewModel(application: Application) : AndroidViewModel(application) {
+/**
+ * Lucky Tap scanning station: NFC read, check-in, check-out and write, plus
+ * the admin reset and clear actions, over the `/ws/lucky-tap` socket.
+ */
+class NfcAppViewModel(
+    private val strings: StringProvider,
+    private val settings: ConnectionSettings,
+    socketFactory: GameSocketFactory,
+) : ViewModel() {
 
     companion object {
         private const val TAG = "NfcAppViewModel"
-        private const val SUCCESS_DISPLAY_DURATION_MS = 1000L
+        const val GAME_SLUG = "lucky-tap"
+        const val SUCCESS_DISPLAY_DURATION_MS = 1000L
+
+        val Factory = viewModelFactory {
+            initializer {
+                val app = checkNotNull(this[APPLICATION_KEY])
+                val prefs = AppPreferences.getInstance(app)
+                NfcAppViewModel(AndroidStringProvider(app), prefs) { scope, canConnect ->
+                    gameSocket(GAME_SLUG, prefs, scope, canConnect)
+                }
+            }
+        }
     }
 
-    private val appPreferences = AppPreferences.getInstance(application)
-
-    /** Convenience accessor for string resources. */
-    private fun str(resId: Int): String = getApplication<Application>().getString(resId)
-    private fun str(resId: Int, vararg args: Any): String = getApplication<Application>().getString(resId, *args)
+    private fun str(resId: Int): String = strings.get(resId)
+    private fun str(resId: Int, vararg args: Any): String = strings.get(resId, *args)
 
     // --- One-shot UI events ---
     private val _uiEvents = MutableSharedFlow<UiEvent>(extraBufferCapacity = 8)
     val uiEvents: SharedFlow<UiEvent> = _uiEvents.asSharedFlow()
 
-    // --- WebSocket (delegated to WebSocketManager) ---
-    private val webSocketManager = WebSocketManager(
-        scope = viewModelScope,
-        getWebSocketUrl = { appPreferences.getEffectiveWebSocketUrl() },
-        canConnect = { _isWifiConnectedToTarget.value },
-    )
-    val webSocketConnectionState: StateFlow<WebSocketConnectionState> = webSocketManager.connectionState
+    // --- WiFi connection state ---
+    private val _isWifiConnectedToTarget = MutableStateFlow(false)
+    val isWifiConnectedToTarget: StateFlow<Boolean> = _isWifiConnectedToTarget.asStateFlow()
+
+    fun setWifiConnected(connected: Boolean) {
+        _isWifiConnectedToTarget.value = connected
+    }
+
+    // --- WebSocket ---
+    private val socket: GameConnection = socketFactory(viewModelScope) { _isWifiConnectedToTarget.value }
+    val webSocketConnectionState: StateFlow<WebSocketConnectionState> = socket.connectionState
 
     // --- NFC state ---
     private val _currentNfcMode = MutableStateFlow(NfcOperationMode.NONE)
@@ -79,14 +115,6 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
     fun setNfcState(state: NfcState) {
         _nfcState.value = state
         _isNfcEnabled.value = state == NfcState.AVAILABLE
-    }
-
-    // --- WiFi connection state ---
-    private val _isWifiConnectedToTarget = MutableStateFlow(false)
-    val isWifiConnectedToTarget: StateFlow<Boolean> = _isWifiConnectedToTarget.asStateFlow()
-
-    fun setWifiConnected(connected: Boolean) {
-        _isWifiConnectedToTarget.value = connected
     }
 
     // --- Combined connection status ---
@@ -122,9 +150,6 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, str(R.string.status_waiting_for_connections))
 
-    private var _currentTargetWifiSsid: String = appPreferences.getEffectiveWifiSsid()
-    val currentTargetWifiSsid: String get() = _currentTargetWifiSsid
-
     init {
         loadAndApplyPreferences()
 
@@ -133,14 +158,18 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
             _isWifiConnectedToTarget.collect { wifiConnected ->
                 if (wifiConnected && webSocketConnectionState.value != WebSocketConnectionState.CONNECTED) {
                     Log.d(TAG, "WiFi connected. Attempting WebSocket connection.")
-                    webSocketManager.connect(appPreferences.getEffectiveWebSocketUrl())
+                    socket.connect()
                 }
             }
         }
 
-        // Forward WebSocket manager events
+        // Surface socket failures. Incoming game state is handled in a later phase.
         viewModelScope.launch {
-            webSocketManager.events.collect { event -> _uiEvents.emit(event) }
+            socket.events.collect { event ->
+                if (event is SocketEvent.GaveUp) {
+                    _uiEvents.emit(UiEvent.ShowToast(str(R.string.toast_ws_gave_up, event.attempts)))
+                }
+            }
         }
 
         // Handle connection loss
@@ -152,17 +181,15 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun loadAndApplyPreferences() {
-        _currentTargetWifiSsid = appPreferences.getEffectiveWifiSsid()
         // Only connect WebSocket if WiFi is already connected;
         // otherwise the WiFi-connected collector will trigger it.
         if (_isWifiConnectedToTarget.value) {
-            val newWsUrl = appPreferences.getEffectiveWebSocketUrl()
-            webSocketManager.connect(newWsUrl)
+            socket.connect()
         }
     }
 
-    fun getEffectiveWifiSsidForActivity(): String = appPreferences.getEffectiveWifiSsid()
-    fun getEffectiveWifiPasswordForActivity(): String = appPreferences.getEffectiveWifiPassword()
+    fun getEffectiveWifiSsidForActivity(): String = settings.effectiveWifiSsid
+    fun getEffectiveWifiPasswordForActivity(): String = settings.effectiveWifiPassword
 
     /** Called from SettingsActivity after saving; reloads prefs and reconnects if needed. */
     fun onPreferencesChanged() {
@@ -198,8 +225,7 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun validateInputForWrite(text: String) {
-        val isValid = (text.toIntOrNull()?.let { it in 1..100 }) ?: false
-        _isWriteButtonEnabled.value = isValid
+        _isWriteButtonEnabled.value = CardNumber.isValid(text)
     }
 
     fun onNfcTagScannedForWrite(tagData: String, success: Boolean, errorMessage: String? = null) {
@@ -229,8 +255,6 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
-        _numberForSuccessDisplay.value = result.data
-
         val messageType = when (_currentNfcMode.value) {
             NfcOperationMode.CHECK_IN -> "nfc-check-in"
             NfcOperationMode.CHECK_OUT -> "nfc-check-out"
@@ -240,7 +264,7 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
 
         val socketResult = if (messageType.isNotBlank()) {
             val payload = JSONObject().apply { put("number", result.data.toIntOrNull()) }
-            webSocketManager.send(messageType, payload)
+            socket.send(GameMessage(messageType, payload))
         } else {
             false
         }
@@ -255,6 +279,8 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
+        // Only show the number (and play the sound) once the server has it.
+        _numberForSuccessDisplay.value = result.data
         _uiState.value = AppUiState.SUCCESS_DISPLAY
         viewModelScope.launch {
             delay(SUCCESS_DISPLAY_DURATION_MS)
@@ -273,7 +299,7 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
 
     fun onResetGameButtonPressed() {
         if (areEssentialConnectionsActive.value) {
-            webSocketManager.send("admin-reset-game", JSONObject())
+            socket.send(GameMessage("admin-reset-game"))
             _nfcStatusMessage.value = str(R.string.status_reset_sent)
         } else {
             _nfcStatusMessage.value = str(R.string.status_reset_no_connection)
@@ -283,7 +309,7 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
 
     fun onClearScansButtonPressed() {
         if (areEssentialConnectionsActive.value) {
-            webSocketManager.send("admin-clear-scans", JSONObject())
+            socket.send(GameMessage("admin-clear-scans"))
             _nfcStatusMessage.value = str(R.string.status_clear_sent)
         } else {
             _nfcStatusMessage.value = str(R.string.status_clear_no_connection)
@@ -326,7 +352,7 @@ class NfcAppViewModel(application: Application) : AndroidViewModel(application) 
 
     override fun onCleared() {
         super.onCleared()
-        webSocketManager.shutdown()
+        socket.shutdown()
         Log.d(TAG, "NfcAppViewModel cleared.")
     }
 }

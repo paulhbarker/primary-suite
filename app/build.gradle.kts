@@ -88,6 +88,8 @@ android {
         unitTests {
             // Robolectric needs merged resources and the manifest.
             isIncludeAndroidResources = true
+            // android.util.Log and friends return defaults instead of throwing in plain JVM tests.
+            isReturnDefaultValues = true
             all { test ->
                 test.maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
             }
@@ -128,4 +130,6 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.robolectric)
     testImplementation(libs.okhttp.mockwebserver)
+    // Real org.json for plain JVM tests (android.jar only has stubs).
+    testImplementation(libs.org.json)
 }

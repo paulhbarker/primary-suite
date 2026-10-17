@@ -6,6 +6,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
+import com.primarysuite.app.core.config.AppPreferences
+import com.primarysuite.app.core.config.ServerConfig
+import com.primarysuite.app.core.config.resetToDefaults
 
 /**
  * Simple settings screen that lets the user override WiFi and WebSocket connection defaults.
@@ -53,14 +56,15 @@ class SettingsActivity : AppCompatActivity() {
         // Show current effective values; leave blank if it's the default (hint shows default)
         editWifiSsid.setText(appPreferences.wifiSsidOverride ?: "")
         editWifiPassword.setText(appPreferences.wifiPasswordOverride ?: "")
-        editWsIp.setText(appPreferences.wsIpOverride ?: "")
-        editWsPort.setText(appPreferences.wsPortOverride ?: "")
+        editWsIp.setText(appPreferences.serverHostOverride ?: "")
+        editWsPort.setText(appPreferences.serverPortOverride ?: "")
 
         // Show default values as helper text below each field
-        setHelperText(R.id.editWifiSsid, AppPreferences.DEFAULT_WIFI_SSID)
-        setHelperText(R.id.editWifiPassword, AppPreferences.DEFAULT_WIFI_PASSWORD)
-        setHelperText(R.id.editWsIp, AppPreferences.DEFAULT_WS_IP)
-        setHelperText(R.id.editWsPort, AppPreferences.DEFAULT_WS_PORT)
+        val defaults = appPreferences.defaults
+        setHelperText(R.id.editWifiSsid, defaults.wifiSsid)
+        setHelperText(R.id.editWifiPassword, defaults.wifiPassword)
+        setHelperText(R.id.editWsIp, defaults.serverHost)
+        setHelperText(R.id.editWsPort, defaults.serverPort)
     }
 
     private fun setHelperText(editTextId: Int, defaultValue: String) {
@@ -73,8 +77,7 @@ class SettingsActivity : AppCompatActivity() {
         // Validate port if provided
         val portText = editWsPort.text.toString().trim()
         if (portText.isNotBlank()) {
-            val port = portText.toIntOrNull()
-            if (port == null || port !in 1..65535) {
+            if (!ServerConfig.isValidPort(portText)) {
                 editWsPort.error = getString(R.string.settings_port_invalid)
                 editWsPort.requestFocus()
                 return
@@ -83,8 +86,8 @@ class SettingsActivity : AppCompatActivity() {
 
         appPreferences.wifiSsidOverride = editWifiSsid.text.toString().ifBlank { null }
         appPreferences.wifiPasswordOverride = editWifiPassword.text.toString().ifBlank { null }
-        appPreferences.wsIpOverride = editWsIp.text.toString().ifBlank { null }
-        appPreferences.wsPortOverride = portText.ifBlank { null }
+        appPreferences.serverHostOverride = editWsIp.text.toString().trim().ifBlank { null }
+        appPreferences.serverPortOverride = portText.ifBlank { null }
 
         Toast.makeText(this, R.string.toast_settings_saved, Toast.LENGTH_SHORT).show()
         setResult(RESULT_OK)
@@ -92,10 +95,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun resetDefaults() {
-        appPreferences.wifiSsidOverride = null
-        appPreferences.wifiPasswordOverride = null
-        appPreferences.wsIpOverride = null
-        appPreferences.wsPortOverride = null
+        appPreferences.resetToDefaults()
 
         editWifiSsid.setText("")
         editWifiPassword.setText("")

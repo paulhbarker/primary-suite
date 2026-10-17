@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 2 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Phase 3 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -105,13 +105,22 @@ Phases run in order. Each one ends with tests passing locally and in CI, a push 
 
 The XML UI keeps working throughout this phase. The aim is to make the reused code testable and independent of any one game.
 
-- [ ] Create `ServerConfig`, which builds `ws://{ip}:{port}/ws/{slug}` and `http://{ip}:{port}/` from preferences. Tests cover overrides, defaults and bad input.
-- [ ] Create `GameMessage` encode and decode for `{type, payload}`, with tests.
-- [ ] Make `WebSocketManager` take its URL per connection and an injected `OkHttpClient` and dispatcher. Wrap it in a `GameSocket(slug)`. Test connect, send, receive, close and backoff against `MockWebServer`.
-- [ ] Put `WifiController` behind a `WifiConnector` interface and provide a `FakeWifiConnector` for tests.
-- [ ] Split `NfcHelper` into pure NDEF text-record parsing and building (`NdefCodec`, tested) and the thin Android tag I/O around it.
-- [ ] Hide `AppPreferences` behind an interface and add an in-memory fake.
-- [ ] Inject dependencies into `NfcAppViewModel` and cover its current behaviour with tests before moving it. These tests act as the parity spec for phase 4.
+- [x] Create `ServerConfig`, which builds `ws://{ip}:{port}/ws/{slug}` and `http://{ip}:{port}/` from preferences. Tests cover overrides, defaults and bad input.
+- [x] Create `GameMessage` encode and decode for `{type, payload}`, with tests.
+- [x] Make `WebSocketManager` take its URL per connection and an injected `OkHttpClient` and dispatcher. `gameSocket(slug, ...)` builds one for a game. Test connect, send, receive, close and backoff against `MockWebServer`.
+- [x] Put `WifiController` behind a `WifiConnector` interface and provide a `FakeWifiConnector` for tests.
+- [x] Split `NfcHelper` into pure NDEF text-record parsing and building (`NdefCodec`, tested) and the thin Android tag I/O around it.
+- [x] Hide `AppPreferences` behind an interface and add an in-memory fake.
+- [x] Inject dependencies into `NfcAppViewModel` and cover its current behaviour with tests before moving it. These tests act as the parity spec for phase 4.
+
+Bugs fixed on the way, each covered by a test:
+
+- The "already connected" check compared against OkHttp's normalised `http://` form of the `ws://` URL, so it never matched, and every `connect()` replaced a healthy socket.
+- Callbacks from a replaced socket could overwrite the new socket's state.
+- `onClosing` set CLOSING after answering the server's close, which could overwrite the DISCONNECTED that `onClosed` had already set on another thread. The state then stayed CLOSING. This showed up as a test that failed 6 runs in 15.
+- When the server closed the socket (a Pi restart, for example), the app only reconnected if OkHttp happened to report a failure rather than a clean close. It now reconnects either way.
+- A scan the socket refused still set the number for display, which played the success sound.
+- WifiController registered its legacy receiver on one context and unregistered it on another. It now uses the application context for both.
 
 ### Phase 3: Compose shell, home screen, settings
 
@@ -175,3 +184,4 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 | 2026-10-17 | | Plan written. |
 | 2026-10-17 | 0 | Android SDK installed in WSL at `~/Android/Sdk` (platform 36, build-tools 36.0.0). `ANDROID_HOME` is set in `~/.bashrc`. The debug build and tests pass. Baseline: 3 Robolectric tests, `testDebugUnitTest --rerun` takes 5.4 s with a warm daemon (3.4 s in tests). The first cold run takes about 20 s. |
 | 2026-10-17 | 1 | Renamed to Primary Suite (`com.primarysuite.app`) in `2cb9e99`. The GitHub repo is now `paulhbarker/primary-suite`; github.com redirects the old URLs, but the old Pages URL `paulhbarker.github.io/LuckyTap/` now returns 404, so printed copies of the old QR code are dead. Release PR #4 now reads 2.0.0. The Tests check doesn't run on release-please PRs because PRs opened with the default token don't trigger workflows (the run shows "action required"). That's harmless, since tests run on every push to `main`. |
+| 2026-10-17 | 2 | Logic split into `core/` (config, net, protocol, wifi, nfc, ui) and `games/luckytap/`. 65 tests in 5.5 s with a warm daemon. The socket tests use a real local server; each takes under 0.4 s and they passed 25 out of 25 stress runs. The view model tests are the parity spec for phase 4. The XML UI is unchanged. |

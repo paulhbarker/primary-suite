@@ -96,4 +96,5 @@
     <string name="cd_nfc_status_disabled">NFC disabled</string>
     <string name="cd_scanning_bar">Scanning indicator</string>
     <string name="cd_scanned_number">Scanned number: %1$s</string>
+    <string name="toast_ws_gave_up">WebSocket connection failed after %1$d attempts.</string>
 </resources>
