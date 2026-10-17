@@ -33,4 +33,10 @@ class ServerConfigTest {
         listOf("1", "80", "8080", "65535", " 8080 ").forEach { assertTrue(it, ServerConfig.isValidPort(it)) }
         listOf("", "0", "-1", "65536", "80a", "8.0").forEach { assertFalse(it, ServerConfig.isValidPort(it)) }
     }
+
+    @Test
+    fun `hosts are bare names or addresses`() {
+        listOf("10.0.0.1", "raspberrypi", "pi.local", "game-server", " 10.0.0.1 ").forEach { assertTrue(it, ServerConfig.isValidHost(it)) }
+        listOf("", "http://10.0.0.1", "10.0.0.1:8080", "10.0.0.1/ws", "bad host", "-pi", "pi.").forEach { assertFalse(it, ServerConfig.isValidHost(it)) }
+    }
 }

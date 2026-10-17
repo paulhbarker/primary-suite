@@ -1,0 +1,171 @@
+package com.primarysuite.app.ui
+
+import android.content.Context
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.primarysuite.app.R
+import com.primarysuite.app.catalog.Game
+import com.primarysuite.app.core.config.ServerConfig
+import com.primarysuite.app.core.config.serverConfig
+import com.primarysuite.app.core.wifi.WifiConnectionState
+import com.primarysuite.app.testing.FakeServerProbe
+import com.primarysuite.app.testing.FakeWifiConnector
+import com.primarysuite.app.testing.InMemoryConnectionSettings
+import com.primarysuite.app.ui.home.HomeTags
+import com.primarysuite.app.ui.settings.SettingsSaved
+import com.primarysuite.app.ui.settings.SettingsTags
+import com.primarysuite.app.ui.theme.PrimarySuiteTheme
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
+
+/** Drives the real nav host with fake WiFi, server and settings. */
+@RunWith(AndroidJUnit4::class)
+@Config(qualifiers = "w411dp-h891dp")
+class NavigationTest {
+
+    @get:Rule
+    val compose = createAndroidComposeRule<ComponentActivity>()
+
+    private val context: Context = ApplicationProvider.getApplicationContext()
+    private fun s(id: Int, vararg args: Any) = context.getString(id, *args)
+
+    private val settings = InMemoryConnectionSettings()
+    private val wifi = FakeWifiConnector()
+    private val probe = FakeServerProbe()
+
+    private val opened = mutableListOf<Game>()
+    private val saved = mutableListOf<SettingsSaved>()
+    private var wifiRetries = 0
+
+    @Before
+    fun setUp() {
+        compose.setContent {
+            PrimarySuiteTheme {
+                PrimarySuiteNavHost(
+                    viewModelFactory = suiteViewModelFactory(settings, wifi, probe),
+                    onOpenTools = { opened += it },
+                    onWifiRetry = { wifiRetries++ },
+                    onSettingsSaved = { saved += it },
+                )
+            }
+        }
+    }
+
+    private fun pressBack() {
+        compose.activity.onBackPressedDispatcher.onBackPressed()
+        compose.waitForIdle()
+    }
+
+    private fun assertOnHome() = compose.onNodeWithTag(HomeTags.game("lucky-tap")).assertIsDisplayed()
+
+    @Test
+    fun `opens on the game list`() {
+        assertOnHome()
+        compose.onNodeWithText(s(R.string.app_name)).assertIsDisplayed()
+    }
+
+    @Test
+    fun `Lucky Tap opens its tools`() {
+        compose.onNodeWithTag(HomeTags.game("lucky-tap")).performClick()
+
+        assertEquals(listOf("lucky-tap"), opened.map { it.slug })
+        assertOnHome()
+    }
+
+    @Test
+    fun `a game without tools shows coming soon, and back returns home`() {
+        compose.onNodeWithTag(HomeTags.game("jeopardy")).performClick()
+
+        compose.onNodeWithText(s(R.string.coming_soon_body, "Jeopardy!")).assertIsDisplayed()
+        assertEquals(emptyList<Game>(), opened)
+
+        pressBack()
+        assertOnHome()
+    }
+
+    @Test
+    fun `the toolbar back arrow leaves coming soon`() {
+        compose.onNodeWithTag(HomeTags.game("state-switch")).performClick()
+        compose.onNodeWithContentDescription(s(R.string.cd_back)).performClick()
+        assertOnHome()
+    }
+
+    @Test
+    fun `tapping wifi when it's down asks to retry`() {
+        wifi.connectionState.value = WifiConnectionState.ERROR
+        compose.waitForIdle()
+
+        compose.onNodeWithTag(HomeTags.WIFI_STATUS).performClick()
+
+        assertEquals(1, wifiRetries)
+    }
+
+    @Test
+    fun `settings opens from the gear and back returns home`() {
+        compose.onNodeWithContentDescription(s(R.string.cd_open_settings)).performClick()
+        compose.onNodeWithTag(SettingsTags.SAVE).assertIsDisplayed()
+
+        pressBack()
+        assertOnHome()
+        assertEquals(emptyList<SettingsSaved>(), saved)
+    }
+
+    @Test
+    fun `an invalid port is flagged and nothing is saved`() {
+        compose.onNodeWithContentDescription(s(R.string.cd_open_settings)).performClick()
+        compose.onNodeWithTag(SettingsTags.PORT).performTextInput("70000")
+        compose.onNodeWithTag(SettingsTags.SAVE).performClick()
+
+        compose.onNodeWithText(s(R.string.settings_port_invalid)).assertIsDisplayed()
+        assertEquals(null, settings.serverPortOverride)
+        assertEquals(emptyList<SettingsSaved>(), saved)
+    }
+
+    @Test
+    fun `saving returns home and shows the new server`() {
+        compose.onNodeWithContentDescription(s(R.string.cd_open_settings)).performClick()
+        compose.onNodeWithTag(SettingsTags.HOST).performTextInput("192.168.4.1")
+        compose.onNodeWithTag(SettingsTags.PORT).performTextInput("9000")
+        compose.onNodeWithTag(SettingsTags.SAVE).performClick()
+
+        assertOnHome()
+        assertEquals(ServerConfig("192.168.4.1", "9000"), settings.serverConfig)
+        assertEquals(listOf(SettingsSaved(wifiChanged = false, serverChanged = true)), saved)
+        compose.onNodeWithText("192.168.4.1:9000").assertIsDisplayed()
+    }
+
+    @Test
+    fun `changing the network name tells the app to rejoin wifi`() {
+        compose.onNodeWithContentDescription(s(R.string.cd_open_settings)).performClick()
+        compose.onNodeWithTag(SettingsTags.SSID).performTextInput("Backstage")
+        compose.onNodeWithTag(SettingsTags.SAVE).performClick()
+
+        assertEquals(listOf(SettingsSaved(wifiChanged = true, serverChanged = false)), saved)
+        compose.onNodeWithText("Backstage", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun `reset clears overrides and stays on settings`() {
+        settings.serverHostOverride = "192.168.4.1"
+        compose.onNodeWithContentDescription(s(R.string.cd_open_settings)).performClick()
+        compose.onNodeWithTag(SettingsTags.HOST).performTextClearance()
+        compose.onNodeWithTag(SettingsTags.RESET).performClick()
+
+        assertEquals(null, settings.serverHostOverride)
+        assertEquals(listOf(SettingsSaved(wifiChanged = false, serverChanged = true)), saved)
+        compose.onNodeWithTag(SettingsTags.SAVE).assertIsDisplayed()
+    }
+}

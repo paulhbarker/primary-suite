@@ -97,4 +97,41 @@
     <string name="cd_scanning_bar">Scanning indicator</string>
     <string name="cd_scanned_number">Scanned number: %1$s</string>
     <string name="toast_ws_gave_up">WebSocket connection failed after %1$d attempts.</string>
+
+    <!-- Home -->
+    <string name="home_section_status">Event network</string>
+    <string name="home_section_games">Games</string>
+    <string name="home_label_wifi">WiFi</string>
+    <string name="home_label_server">Game server</string>
+    <string name="home_wifi_connected">Connected</string>
+    <string name="home_wifi_connecting">Connecting…</string>
+    <string name="home_wifi_disconnected">Not connected</string>
+    <string name="home_wifi_error">Can\'t connect</string>
+    <string name="home_wifi_tap_to_retry">%1$s · tap to retry</string>
+    <string name="home_server_waiting">Waiting for WiFi</string>
+    <string name="home_server_checking">Checking…</string>
+    <string name="home_server_reachable">Online</string>
+    <string name="home_server_unreachable">Not responding</string>
+    <string name="home_tools_coming_soon">Tools coming soon</string>
+    <string name="cd_open_settings">Settings</string>
+    <string name="cd_back">Back</string>
+
+    <!-- Coming soon -->
+    <string name="coming_soon_title">Tools coming soon</string>
+    <string name="coming_soon_body">Admin tools for %1$s aren\'t in the app yet. Use the web admin for now.</string>
+
+    <!-- Settings (Compose) -->
+    <string name="settings_section_wifi">Event WiFi</string>
+    <string name="settings_section_server">Game server</string>
+    <string name="settings_ssid">Network name (SSID)</string>
+    <string name="settings_password">Password</string>
+    <string name="settings_host">Server address</string>
+    <string name="settings_port">Port</string>
+    <string name="settings_default_hint">Default: %1$s</string>
+    <string name="settings_default_password_hint">Leave blank to use the default</string>
+    <string name="settings_host_invalid">Enter a hostname or IP address, without http:// or a port</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_reset">Reset to defaults</string>
+    <string name="cd_show_password">Show password</string>
+    <string name="cd_hide_password">Hide password</string>
 </resources>

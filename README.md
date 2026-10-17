@@ -34,14 +34,23 @@ Primary Suite started as LuckyTap, an NFC companion for the Lucky Tap game. It i
 
 | Component | File | Responsibility |
 |---|---|---|
-| **MainActivity** | `MainActivity.kt` | UI, NFC foreground dispatch, permissions, WiFi/NFC prompts |
-| **SettingsActivity** | `SettingsActivity.kt` | Runtime overrides for WiFi and the server address |
-| **NfcAppViewModel** | `games/luckytap/NfcAppViewModel.kt` | Lucky Tap scanning state machine and messages |
+| **MainActivity** | `MainActivity.kt` | Compose host: game list, settings, app-wide WiFi setup |
+| **PrimarySuiteNavHost** | `ui/PrimarySuiteNavHost.kt` | Routes: home, settings, `game/{slug}` |
+| **HomeViewModel** | `ui/home/` | WiFi and game server status, the game list |
+| **SettingsViewModel** | `ui/settings/` | WiFi and server overrides with validation |
+| **GameCatalog** | `catalog/GameCatalog.kt` | The games the suite lists, and which have tools |
+| **LuckyTapActivity** | `games/luckytap/` | Lucky Tap scanning screen (XML, moving to Compose) and `NfcAppViewModel` |
 | **WebSocketManager** | `core/net/WebSocketManager.kt` | One game's socket (`/ws/{slug}`): connect, send, receive, reconnect with backoff |
+| **ServerProbe** | `core/net/ServerProbe.kt` | HTTP check that the game server answers |
 | **GameMessage** | `core/protocol/GameMessage.kt` | `{type, payload}` encoding and decoding |
-| **WifiController** | `core/wifi/WifiController.kt` | Joins the event network via `WifiNetworkSpecifier` (API 29+) or `WifiConfiguration` (legacy) |
+| **WifiController / WifiSetupCoordinator** | `core/wifi/` | Joins the event network; permission and settings prompts |
 | **NfcHelper / NdefCodec** | `core/nfc/` | NDEF tag I/O and text-record parsing |
 | **AppPreferences / ServerConfig** | `core/config/` | Settings storage (`EncryptedSharedPreferences` for the password) and server URLs |
+
+### Adding a game
+
+1. Add its screen under `games/<slug>/`, using `gameSocket(slug, ...)` for its channel.
+2. Set `hasTools = true` for it in `GameCatalog` and route it from the home screen.
 
 ## Requirements
 

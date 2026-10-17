@@ -19,6 +19,11 @@ data class ServerConfig(val host: String, val port: String) {
     companion object {
         private val SLUG = Regex("[a-z0-9]+(-[a-z0-9]+)*")
 
+        private val HOST = Regex("[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?")
+
+        /** True for a bare hostname or IPv4 address, without scheme, port or path. */
+        fun isValidHost(text: String): Boolean = HOST.matches(text.trim())
+
         /** True for a TCP port number, 1 to 65535. Surrounding spaces are allowed. */
         fun isValidPort(text: String): Boolean = text.trim().toIntOrNull()?.let { it in 1..65535 } ?: false
     }

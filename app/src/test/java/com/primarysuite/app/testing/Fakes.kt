@@ -2,6 +2,8 @@ package com.primarysuite.app.testing
 
 import com.primarysuite.app.core.config.ConnectionDefaults
 import com.primarysuite.app.core.config.ConnectionSettings
+import com.primarysuite.app.core.config.ServerConfig
+import com.primarysuite.app.core.net.ServerProbe
 import com.primarysuite.app.core.net.GameConnection
 import com.primarysuite.app.core.net.SocketEvent
 import com.primarysuite.app.core.net.WebSocketConnectionState
@@ -86,4 +88,15 @@ class FakeWifiConnector : WifiConnector {
     override fun isConnectedTo(ssid: String?): Boolean = ssid != null && ssid == connectedSsid
 
     override fun cleanup() = disconnect()
+}
+
+/** A [ServerProbe] whose answer tests control. Records which servers were checked. */
+class FakeServerProbe(var reachable: Boolean = true, var latencyMs: Long = 0) : ServerProbe {
+    val checked = mutableListOf<ServerConfig>()
+
+    override suspend fun isReachable(server: ServerConfig): Boolean {
+        checked += server
+        if (latencyMs > 0) kotlinx.coroutines.delay(latencyMs)
+        return reachable
+    }
 }

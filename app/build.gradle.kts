@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
 }
 
 // Load local.properties for secret defaults (file is gitignored)
@@ -61,6 +62,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     buildTypes {
@@ -115,6 +117,18 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    debugImplementation(libs.compose.ui.tooling)
+    // Hosts composables in Robolectric tests (createComposeRule).
+    debugImplementation(libs.compose.ui.test.manifest)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.security.crypto)
@@ -124,6 +138,8 @@ dependencies {
     // Tests run on the JVM only (no emulator): JUnit, coroutines-test, Turbine,
     // Robolectric for Android framework classes, MockWebServer for sockets.
     testImplementation(libs.junit)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
     testImplementation(libs.androidx.junit)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlinx.coroutines.test)

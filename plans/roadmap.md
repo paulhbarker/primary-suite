@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 3 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Phase 4 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -124,16 +124,24 @@ Bugs fixed on the way, each covered by a test:
 
 ### Phase 3: Compose shell, home screen, settings
 
-- [ ] Add Compose (BOM), Material 3, Navigation Compose, and `lifecycle-viewmodel-compose`.
-- [ ] Port the dark palette and the socafe font into `ui/theme`.
-- [ ] Add `GameCatalog` with the six games. Test that slugs are unique and that only Lucky Tap has tools.
-- [ ] Add `HomeViewModel`, which combines WiFi state, the server probe and the catalog into one UI state. Test every combination with fakes.
-- [ ] Build `HomeScreen`: a status block for WiFi and the server, then the game list. Games without tools are dimmed and labelled "Tools coming soon".
-- [ ] Port `SettingsScreen` and `SettingsViewModel` from `SettingsActivity`, keeping validation and the encrypted password. After saving, the server probe re-runs and open sockets reconnect.
-- [ ] Add `ComingSoonScreen`.
-- [ ] Make the new single `MainActivity` the launcher and route Lucky Tap to the old screen for the moment, so the app stays usable between phases.
-- [ ] Device smoke check: the home screen shows WiFi and server status correctly with the Pi on and off, and settings changes take effect.
-- [ ] Add Robolectric Compose tests: the list renders every game, tapping Lucky Tap navigates, tapping another game shows Coming Soon, the settings gear opens Settings, settings validation errors show, and Back returns home.
+- [x] Add Compose (BOM), Material 3, Navigation Compose, and `lifecycle-viewmodel-compose`. Pinned to Compose BOM 2026.06.01 and Navigation 2.9.7, because newer versions need `compileSdk` 37.
+- [x] Port the dark palette and the socafe font into `ui/theme`.
+- [x] Add `GameCatalog` with the six games. Test that slugs are unique and that only Lucky Tap has tools.
+- [x] Add `HomeViewModel`, which combines WiFi state, the server probe and the catalog into one UI state. Test every combination with fakes.
+- [x] Build `HomeScreen`: a status block for WiFi and the server, then the game list. Games without tools are dimmed and labelled "Tools coming soon".
+- [x] Port `SettingsScreen` and `SettingsViewModel` from `SettingsActivity`, keeping validation and the encrypted password. After saving, the server probe re-runs and open sockets reconnect.
+- [x] Add `ComingSoonScreen`.
+- [x] Make the new single `MainActivity` the launcher and route Lucky Tap to the old screen for the moment, so the app stays usable between phases.
+- [ ] (Deferred until the phone is connected) Device smoke check: the home screen shows WiFi and server status correctly with the Pi on and off, and settings changes take effect.
+- [x] Add Robolectric Compose tests: the list renders every game, tapping Lucky Tap navigates, tapping another game shows Coming Soon, the settings gear opens Settings, settings validation errors show, and Back returns home.
+
+Also done in this phase:
+
+- `PrimarySuiteApplication` and `AppContainer` own one `WifiController` for the whole app. Leaving Lucky Tap no longer drops WiFi.
+- The WiFi setup order is a pure function (`nextWifiSetupAction`) with tests. `WifiSetupCoordinator` carries out each step for both activities, replacing the old activity's copy. A prompt the user declines isn't reopened on every resume, only when they tap the WiFi status.
+- Saving settings rejoins WiFi when the SSID or password changed. Before, that only happened after a restart.
+- Settings checks the server address (a bare host, no `http://` or port). The default WiFi password is no longer shown in the hint; the old screen displayed it.
+- The old `MainActivity` is now `games/luckytap/LuckyTapActivity` and its settings button is hidden. `SettingsActivity` and its layout are deleted.
 
 ### Phase 4: Lucky Tap in Compose (parity)
 
@@ -185,3 +193,4 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 | 2026-10-17 | 0 | Android SDK installed in WSL at `~/Android/Sdk` (platform 36, build-tools 36.0.0). `ANDROID_HOME` is set in `~/.bashrc`. The debug build and tests pass. Baseline: 3 Robolectric tests, `testDebugUnitTest --rerun` takes 5.4 s with a warm daemon (3.4 s in tests). The first cold run takes about 20 s. |
 | 2026-10-17 | 1 | Renamed to Primary Suite (`com.primarysuite.app`) in `2cb9e99`. The GitHub repo is now `paulhbarker/primary-suite`; github.com redirects the old URLs, but the old Pages URL `paulhbarker.github.io/LuckyTap/` now returns 404, so printed copies of the old QR code are dead. Release PR #4 now reads 2.0.0. The Tests check doesn't run on release-please PRs because PRs opened with the default token don't trigger workflows (the run shows "action required"). That's harmless, since tests run on every push to `main`. |
 | 2026-10-17 | 2 | Logic split into `core/` (config, net, protocol, wifi, nfc, ui) and `games/luckytap/`. 65 tests in 5.5 s with a warm daemon. The socket tests use a real local server; each takes under 0.4 s and they passed 25 out of 25 stress runs. The view model tests are the parity spec for phase 4. The XML UI is unchanged. |
+| 2026-10-17 | 3 | Compose home, settings and coming-soon screens, with the old XML Lucky Tap screen behind the home screen. 108 tests: 14.6 s wall-clock with a warm daemon, 28 s of test time across parallel forks. The Robolectric Compose tests take about 1 s each after the first. Checked the screens by rendering them to PNG with Robolectric's native graphics. |

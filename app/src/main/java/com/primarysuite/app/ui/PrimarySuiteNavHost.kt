@@ -1,0 +1,119 @@
+package com.primarysuite.app.ui
+
+import android.widget.Toast
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.primarysuite.app.R
+import com.primarysuite.app.catalog.Game
+import com.primarysuite.app.catalog.GameCatalog
+import com.primarysuite.app.core.config.ConnectionSettings
+import com.primarysuite.app.core.net.ServerProbe
+import com.primarysuite.app.core.wifi.WifiConnector
+import com.primarysuite.app.ui.comingsoon.ComingSoonScreen
+import com.primarysuite.app.ui.home.HomeScreen
+import com.primarysuite.app.ui.home.HomeViewModel
+import com.primarysuite.app.ui.settings.SettingsSaved
+import com.primarysuite.app.ui.settings.SettingsScreen
+import com.primarysuite.app.ui.settings.SettingsViewModel
+
+object Routes {
+    const val HOME = "home"
+    const val SETTINGS = "settings"
+    const val GAME = "game/{slug}"
+    fun game(slug: String) = "game/$slug"
+}
+
+/** Builds the screens' view models from the app's dependencies (or fakes in tests). */
+fun suiteViewModelFactory(
+    settings: ConnectionSettings,
+    wifi: WifiConnector,
+    probe: ServerProbe,
+    games: List<Game> = GameCatalog.games,
+): ViewModelProvider.Factory = viewModelFactory {
+    initializer { HomeViewModel(settings, wifi, probe, games) }
+    initializer { SettingsViewModel(settings) }
+}
+
+/**
+ * @param onOpenTools opens a game that has tools. Lucky Tap is still a separate
+ *   activity until its Compose screen lands, so the caller decides how to open it.
+ * @param onWifiRetry asks again for WiFi permissions or prompts the user declined.
+ * @param onSettingsSaved lets the caller rejoin WiFi when the network changed.
+ */
+@Composable
+fun PrimarySuiteNavHost(
+    viewModelFactory: ViewModelProvider.Factory,
+    onOpenTools: (Game) -> Unit,
+    onWifiRetry: () -> Unit,
+    onSettingsSaved: (SettingsSaved) -> Unit,
+    games: List<Game> = GameCatalog.games,
+    navController: NavHostController = rememberNavController(),
+) {
+    NavHost(navController, startDestination = Routes.HOME) {
+        composable(Routes.HOME) {
+            val home: HomeViewModel = viewModel(factory = viewModelFactory)
+            val state by home.uiState.collectAsStateWithLifecycle()
+            HomeScreen(
+                state = state,
+                onGameClick = { game ->
+                    if (game.hasTools) onOpenTools(game) else navController.navigate(Routes.game(game.slug))
+                },
+                onSettingsClick = { navController.navigate(Routes.SETTINGS) },
+                onWifiClick = onWifiRetry,
+            )
+        }
+
+        composable(Routes.SETTINGS) {
+            val context = LocalContext.current
+            val settingsVm: SettingsViewModel = viewModel(factory = viewModelFactory)
+            // Shared with the home destination's owner so it can refresh after a save.
+            val homeEntry = navController.getBackStackEntry(Routes.HOME)
+            val home: HomeViewModel = viewModel(homeEntry, factory = viewModelFactory)
+            val state by settingsVm.uiState.collectAsStateWithLifecycle()
+
+            fun applied(result: SettingsSaved) {
+                home.refresh()
+                onSettingsSaved(result)
+            }
+
+            SettingsScreen(
+                state = state,
+                onSsidChange = settingsVm::onWifiSsidChange,
+                onPasswordChange = settingsVm::onWifiPasswordChange,
+                onHostChange = settingsVm::onServerHostChange,
+                onPortChange = settingsVm::onServerPortChange,
+                onSave = {
+                    settingsVm.save()?.let { result ->
+                        applied(result)
+                        Toast.makeText(context, R.string.toast_settings_saved, Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }
+                },
+                onReset = {
+                    applied(settingsVm.resetToDefaults())
+                    Toast.makeText(context, R.string.toast_settings_reset, Toast.LENGTH_SHORT).show()
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(Routes.GAME) { entry ->
+            val game = entry.arguments?.getString("slug")?.let { slug -> games.firstOrNull { it.slug == slug } }
+            if (game == null) {
+                navController.popBackStack()
+            } else {
+                ComingSoonScreen(game, onBack = { navController.popBackStack() })
+            }
+        }
+    }
+}
