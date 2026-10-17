@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 0 not started.** Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Phase 0 in progress.** Only the device step is left. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -80,13 +80,16 @@ Phases run in order. Each one ends with tests passing locally and in CI, a push 
 
 ### Phase 0: tooling and test baseline
 
-- [ ] Install the Android SDK command-line tools in WSL (`~/Android/Sdk`, platform 36, build-tools). Point `local.properties` `sdk.dir` at it.
-- [ ] `./gradlew assembleDebug` and `./gradlew testDebugUnitTest` succeed in WSL.
-- [ ] Add test dependencies to the version catalog: `kotlinx-coroutines-test`, Turbine, Robolectric, OkHttp `mockwebserver`, `androidx.test:core`.
-- [ ] Replace the template `ExampleUnitTest` and `ExampleInstrumentedTest` with one real smoke test.
-- [ ] New workflow `.github/workflows/test.yml` runs `testDebugUnitTest` on push and PR with Gradle caching. It uses dummy WiFi values, since the build fails when the SSID is blank.
-- [ ] Record the test suite's run time in the progress log.
-- [ ] Connect the old phone, note its model and Android version in the progress log, and add a `scripts/device-smoke.sh` that builds the debug APK, installs it with `adb.exe install -r`, and launches it.
+- [x] Install the Android SDK command-line tools in WSL (`~/Android/Sdk`, platform 36, build-tools). Point `local.properties` `sdk.dir` at it.
+- [x] `./gradlew assembleDebug` and `./gradlew testDebugUnitTest` succeed in WSL.
+- [x] Add test dependencies to the version catalog: `kotlinx-coroutines-test`, Turbine, Robolectric, OkHttp `mockwebserver`, `androidx.test:core`.
+- [x] Upgrade the foojay toolchain plugin from 0.10.0 to 1.0.0. The old version breaks on Gradle 9.
+- [x] Run tests on a Java 17 launcher. The app still compiles for Java 11, but Robolectric needs Java 17 for SDK 35.
+- [x] Replace the template `ExampleUnitTest` and `ExampleInstrumentedTest` with one real smoke test.
+- [x] New workflow `.github/workflows/test.yml` runs `testDebugUnitTest` on push and PR with Gradle caching. It uses dummy WiFi values, since the build fails when the SSID is blank.
+- [x] Record the test suite's run time in the progress log.
+- [x] Add a `scripts/device-smoke.sh` that builds the debug APK, installs it with `adb.exe install -r`, and launches it.
+- [ ] Connect the old phone, run the script, and note the phone's model and Android version in the progress log.
 
 ### Phase 1: rename to Primary Suite
 
@@ -169,4 +172,5 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 
 | Date | Phase | Notes |
 |---|---|---|
-| | | Plan written. |
+| 2026-10-17 | | Plan written. |
+| 2026-10-17 | 0 | Android SDK installed in WSL at `~/Android/Sdk` (platform 36, build-tools 36.0.0). `ANDROID_HOME` is set in `~/.bashrc`. The debug build and tests pass. Baseline: 3 Robolectric tests, `testDebugUnitTest --rerun` takes 5.4 s with a warm daemon (3.4 s in tests). The first cold run takes about 20 s. |

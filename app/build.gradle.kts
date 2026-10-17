@@ -48,8 +48,6 @@ android {
         versionCode = ciVersionCode
         versionName = ciVersionName
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
         // Inject WiFi / WebSocket defaults from local.properties into BuildConfig
         buildConfigField("String", "DEFAULT_WIFI_SSID",     "\"${buildProp("luckytap.wifi.ssid",     "LUCKYTAP_WIFI_SSID",     "")}\"")
         buildConfigField("String", "DEFAULT_WIFI_PASSWORD", "\"${buildProp("luckytap.wifi.password", "LUCKYTAP_WIFI_PASSWORD", "")}\"")
@@ -86,10 +84,24 @@ android {
         // Required if minSdk is ever lowered below 26, and is a zero-cost defensive measure otherwise.
         isCoreLibraryDesugaringEnabled = true
     }
+    testOptions {
+        unitTests {
+            // Robolectric needs merged resources and the manifest.
+            isIncludeAndroidResources = true
+            all { test ->
+                test.maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+            }
+        }
+    }
 }
 
 kotlin {
     jvmToolchain(11)
+}
+
+// The app compiles for Java 11, but Robolectric needs Java 17+ to run SDK 35 sandboxes.
+tasks.withType<Test>().configureEach {
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(17)) })
 }
 
 dependencies {
@@ -107,7 +119,13 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
+    // Tests run on the JVM only (no emulator): JUnit, coroutines-test, Turbine,
+    // Robolectric for Android framework classes, MockWebServer for sockets.
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.okhttp.mockwebserver)
 }

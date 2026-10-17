@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Unit tests (JVM + Robolectric)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      # AGP needs JDK 17+ to run Gradle. The app's Java 11 toolchain and the
+      # tests' Java 17 launcher are provisioned by the foojay resolver.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The build refuses a blank SSID, so tests get placeholder values.
+      # No real network details are needed or used here.
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --console=plain
+        env:
+          LUCKYTAP_WIFI_SSID: ci-test-network
+          LUCKYTAP_WIFI_PASSWORD: ci-test-password
+          LUCKYTAP_WS_IP: 127.0.0.1
+          LUCKYTAP_WS_PORT: '8080'
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/tests/testDebugUnitTest/

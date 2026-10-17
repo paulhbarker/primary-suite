@@ -91,6 +91,16 @@ Open the project folder in Android Studio. Gradle sync will download all depende
 
 The APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
 
+### Tests
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+All tests run on the JVM (JUnit, Robolectric, MockWebServer); no emulator or device is needed. CI runs them on every push and pull request.
+
+To try a debug build on a USB-connected phone from WSL, run `scripts/device-smoke.sh`. It builds, installs and launches the app using the Windows `adb.exe`.
+
 ### Release
 
 ```bash
