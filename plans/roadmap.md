@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 0 in progress.** Only the device step is left. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Phase 2 next.** The device checks for phases 0 and 1 wait until the phone is connected. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -89,17 +89,17 @@ Phases run in order. Each one ends with tests passing locally and in CI, a push 
 - [x] New workflow `.github/workflows/test.yml` runs `testDebugUnitTest` on push and PR with Gradle caching. It uses dummy WiFi values, since the build fails when the SSID is blank.
 - [x] Record the test suite's run time in the progress log.
 - [x] Add a `scripts/device-smoke.sh` that builds the debug APK, installs it with `adb.exe install -r`, and launches it.
-- [ ] Connect the old phone, run the script, and note the phone's model and Android version in the progress log.
+- [ ] (Deferred until the phone is connected) Connect the old phone, run the script, and note the phone's model and Android version in the progress log.
 
 ### Phase 1: rename to Primary Suite
 
-- [ ] Change `namespace` and `applicationId` to `com.primarysuite.app` and move the sources to the new package.
-- [ ] Set the app name to "Primary Suite" in `strings.xml`.
-- [ ] Rename the build properties from `luckytap.*` to `primarysuite.*` and the CI env vars from `LUCKYTAP_*` to `PRIMARYSUITE_*`. Update `local.properties` and the workflow files. The GitHub secret names (`DEFAULT_WIFI_SSID` and the rest) stay as they are.
-- [ ] Update the README, the GitHub Pages landing page (`docs/index.html`), the install QR code, and the APK name in `build-release.yml`.
-- [ ] Rename the GitHub repo to `primary-suite` and update the `origin` URL.
-- [ ] Device smoke check: the new app installs next to the old LuckyTap, launches, and Lucky Tap still works end to end.
-- [ ] Commit as `feat!: rename app to Primary Suite` so release-please bumps to 2.0.0.
+- [x] Change `namespace` and `applicationId` to `com.primarysuite.app` and move the sources to the new package.
+- [x] Set the app name to "Primary Suite" in `strings.xml`.
+- [x] Rename the build properties from `luckytap.*` to `primarysuite.*` and the CI env vars from `LUCKYTAP_*` to `PRIMARYSUITE_*`. Update `local.properties` and the workflow files. The GitHub secret names (`DEFAULT_WIFI_SSID` and the rest) stay as they are.
+- [x] Update the README, the GitHub Pages landing page (`docs/index.html`), and the install QR code (now `primary-suite-install-qr.png`). The release APK keeps its `app-release.apk` name so the landing page's `/latest/download/` link still works.
+- [x] Rename the GitHub repo to `primary-suite` and update the `origin` URL.
+- [ ] (Deferred until the phone is connected) Device smoke check: the new app installs next to the old LuckyTap, launches, and Lucky Tap still works end to end.
+- [x] Commit as `feat!: rename app to Primary Suite` so release-please bumps to 2.0.0.
 
 ### Phase 2: pull the logic out of the activities (no visible change)
 
@@ -174,3 +174,4 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 |---|---|---|
 | 2026-10-17 | | Plan written. |
 | 2026-10-17 | 0 | Android SDK installed in WSL at `~/Android/Sdk` (platform 36, build-tools 36.0.0). `ANDROID_HOME` is set in `~/.bashrc`. The debug build and tests pass. Baseline: 3 Robolectric tests, `testDebugUnitTest --rerun` takes 5.4 s with a warm daemon (3.4 s in tests). The first cold run takes about 20 s. |
+| 2026-10-17 | 1 | Renamed to Primary Suite (`com.primarysuite.app`) in `2cb9e99`. The GitHub repo is now `paulhbarker/primary-suite`; github.com redirects the old URLs, but the old Pages URL `paulhbarker.github.io/LuckyTap/` now returns 404, so printed copies of the old QR code are dead. Release PR #4 now reads 2.0.0. The Tests check doesn't run on release-please PRs because PRs opened with the default token don't trigger workflows (the run shows "action required"). That's harmless, since tests run on every push to `main`. |
