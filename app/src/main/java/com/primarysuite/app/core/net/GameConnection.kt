@@ -1,12 +1,16 @@
 package com.primarysuite.app.core.net
 
 import com.primarysuite.app.core.protocol.GameMessage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 enum class WebSocketConnectionState { DISCONNECTED, CONNECTING, CONNECTED, CLOSING }
 
 sealed interface SocketEvent {
+    /** The socket opened (first connect or a reconnect). Games that need a handshake send it now. */
+    data object Connected : SocketEvent
+
     /** A message arrived from the server. */
     data class Received(val message: GameMessage) : SocketEvent
 
@@ -45,3 +49,6 @@ data class RetryPolicy(
     fun delayFor(attempt: Int): Long =
         (baseDelayMs * (1L shl attempt.coerceIn(0, 5))).coerceAtMost(maxDelayMs)
 }
+
+/** Opens a game's socket in [scope]. `canConnect` reports whether WiFi is up. */
+typealias GameSocketFactory = (scope: CoroutineScope, canConnect: () -> Boolean) -> GameConnection

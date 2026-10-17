@@ -158,6 +158,7 @@ class WebSocketManager(
             retryJob?.cancel()
             retryCount = 0
             _connectionState.value = WebSocketConnectionState.CONNECTED
+            _events.tryEmit(SocketEvent.Connected)
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {

@@ -1,0 +1,53 @@
+{
+ "type": "jeopardy-state",
+ "payload": {
+  "seq": 3,
+  "serverTime": 1760700000000,
+  "phase": "lobby",
+  "settings": {
+   "dailyDoubles": true,
+   "buzzerMode": "manual",
+   "earlyBuzzPenalty": true,
+   "earlyBuzzPenaltyMs": 250,
+   "deductIncorrect": true,
+   "rearmAfterIncorrect": true,
+   "buzzWindowMs": 5000,
+   "answerWindowMs": 5000,
+   "readMsPerChar": 60,
+   "readMinMs": 2000,
+   "lowestScoreStartsRound": true,
+   "revealCategories": true,
+   "hideResponses": false,
+   "soundVolume": 0.8
+  },
+  "players": [
+   {
+    "color": "#2f6fdf",
+    "ink": "#ffffff",
+    "id": "p1",
+    "name": "Amy",
+    "score": 400,
+    "connected": true,
+    "hasPhone": false,
+    "buttonId": 4
+   },
+   {
+    "id": "p2",
+    "name": "Bob",
+    "score": -200,
+    "connected": true,
+    "hasPhone": true
+   },
+   {
+    "id": "p3",
+    "name": "Cat",
+    "score": 0,
+    "connected": false,
+    "hasPhone": false
+   }
+  ],
+  "deadline": 0,
+  "deadlineTotalMs": 0,
+  "canUndo": false
+ }
+}

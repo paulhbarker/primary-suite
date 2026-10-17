@@ -1,0 +1,253 @@
+{
+ "type": "jeopardy-state",
+ "payload": {
+  "seq": 12,
+  "serverTime": 1760700000000,
+  "phase": "answering",
+  "settings": {
+   "dailyDoubles": true,
+   "buzzerMode": "manual",
+   "earlyBuzzPenalty": true,
+   "earlyBuzzPenaltyMs": 250,
+   "deductIncorrect": true,
+   "rearmAfterIncorrect": true,
+   "buzzWindowMs": 5000,
+   "answerWindowMs": 5000,
+   "readMsPerChar": 60,
+   "readMinMs": 2000,
+   "lowestScoreStartsRound": true,
+   "revealCategories": true,
+   "hideResponses": false,
+   "soundVolume": 0.8
+  },
+  "players": [
+   {
+    "color": "#2f6fdf",
+    "ink": "#ffffff",
+    "id": "p1",
+    "name": "Amy",
+    "score": 400,
+    "connected": true,
+    "hasPhone": false,
+    "buttonId": 4
+   },
+   {
+    "id": "p2",
+    "name": "Bob",
+    "score": -200,
+    "connected": true,
+    "hasPhone": true
+   },
+   {
+    "id": "p3",
+    "name": "Cat",
+    "score": 0,
+    "connected": false,
+    "hasPhone": false
+   }
+  ],
+  "deadline": 1760700005000,
+  "deadlineTotalMs": 5000,
+  "canUndo": true,
+  "boardId": "b1",
+  "boardName": "Science Night",
+  "control": "p1",
+  "round": {
+   "index": 0,
+   "count": 2,
+   "categories": [
+    {
+     "title": "CAT 1",
+     "description": "desc",
+     "visible": true,
+     "revealed": true
+    },
+    {
+     "title": "CAT 2",
+     "description": "",
+     "visible": true,
+     "revealed": true
+    },
+    {
+     "title": "CAT 3",
+     "description": "",
+     "visible": true,
+     "revealed": true
+    },
+    {
+     "title": "CAT 4",
+     "description": "",
+     "visible": true,
+     "revealed": true
+    },
+    {
+     "title": "CAT 5",
+     "description": "",
+     "visible": true,
+     "revealed": true
+    },
+    {
+     "title": "",
+     "visible": false,
+     "revealed": false
+    }
+   ],
+   "values": [
+    200,
+    400,
+    600,
+    800,
+    1000
+   ],
+   "tiles": [
+    [
+     {
+      "state": "used"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     }
+    ],
+    [
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     }
+    ],
+    [
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available",
+      "dailyDouble": true
+     },
+     {
+      "state": "available"
+     }
+    ],
+    [
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     }
+    ],
+    [
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     },
+     {
+      "state": "available"
+     }
+    ],
+    [
+     {
+      "state": "empty"
+     },
+     {
+      "state": "empty"
+     },
+     {
+      "state": "empty"
+     },
+     {
+      "state": "empty"
+     },
+     {
+      "state": "empty"
+     }
+    ]
+   ]
+  },
+  "log": [
+   {
+    "at": "2026-10-17T12:00:01.123456789-06:00",
+    "text": "Amy correct",
+    "playerId": "p1",
+    "delta": 200
+   },
+   {
+    "at": "2026-10-17T12:00:05Z",
+    "text": "Score set",
+    "delta": 0
+   }
+  ],
+  "lastButton": {
+   "buttonId": 4,
+   "at": "2026-10-17T12:00:02.5-06:00",
+   "playerId": "p1"
+  },
+  "clue": {
+   "col": 1,
+   "row": 2,
+   "value": 600,
+   "category": "CAT 2",
+   "dailyDouble": false,
+   "mode": "manual",
+   "clue": {
+    "type": "text",
+    "text": "This planet is red"
+   },
+   "response": {
+    "type": "image",
+    "imageUrl": "/api/jeopardy/images/mars.jpg",
+    "topCaption": "What is",
+    "bottomCaption": "Mars?"
+   },
+   "responder": "p2",
+   "lockedOut": [
+    "p3"
+   ],
+   "wager": 0,
+   "wagerSet": false
+  },
+  "deadlineKind": "answer",
+  "assigningButtonFor": "p3"
+ }
+}

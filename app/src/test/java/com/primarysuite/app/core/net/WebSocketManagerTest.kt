@@ -10,6 +10,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import okhttp3.Response
@@ -203,5 +205,20 @@ class WebSocketManagerTest {
         assertEquals(2, gaveUp.await().attempts)
         assertEquals(3, server.requestCount) // first try plus two retries
         assertEquals(WebSocketConnectionState.DISCONNECTED, manager.connectionState.value)
+    }
+
+    @Test
+    fun `announces every connect, including reconnects`() = runBlocking {
+        server.enqueue(upgrade())
+        server.enqueue(upgrade())
+        val connects = async(start = CoroutineStart.UNDISPATCHED) {
+            withTimeout(5_000) { manager.events.filterIsInstance<SocketEvent.Connected>().take(2).toList() }
+        }
+
+        manager.connect()
+        awaitState(WebSocketConnectionState.CONNECTED)
+        serverSockets.poll(5, TimeUnit.SECONDS)!!.close(1001, "server restarting")
+
+        assertEquals(2, connects.await().size)
     }
 }

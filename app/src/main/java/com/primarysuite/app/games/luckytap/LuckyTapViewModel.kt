@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.primarysuite.app.R
 import com.primarysuite.app.core.net.GameConnection
+import com.primarysuite.app.core.net.GameSocketFactory
 import com.primarysuite.app.core.net.SocketEvent
 import com.primarysuite.app.core.net.WebSocketConnectionState
 import com.primarysuite.app.core.nfc.NfcHub
@@ -17,7 +18,6 @@ import com.primarysuite.app.core.ui.UiEvent
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.core.wifi.WifiConnector
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,9 +37,6 @@ import org.json.JSONObject
 
 enum class NfcOperationMode { NONE, WRITE, READ, CHECK_IN, CHECK_OUT }
 enum class AppUiState { NORMAL, SCANNING, SUCCESS_DISPLAY }
-
-/** Opens the game socket. `canConnect` reports whether WiFi is up. */
-typealias GameSocketFactory = (scope: CoroutineScope, canConnect: () -> Boolean) -> GameConnection
 
 /**
  * Lucky Tap scanning station: NFC read, check-in, check-out and write, plus
@@ -148,6 +145,7 @@ class LuckyTapViewModel(
                     is SocketEvent.Received -> _gameState.update { it.reduce(event.message) }
                     is SocketEvent.GaveUp ->
                         _uiEvents.emit(UiEvent.ShowToast(str(R.string.toast_ws_gave_up, event.attempts)))
+                    SocketEvent.Connected -> Unit // the server sends a full state on connect
                 }
             }
         }
