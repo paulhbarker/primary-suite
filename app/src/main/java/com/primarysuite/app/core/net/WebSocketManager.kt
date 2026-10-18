@@ -42,8 +42,15 @@ class WebSocketManager(
         private const val NORMAL_CLOSURE = 1000
         private const val GOING_AWAY = 1001
 
+        /**
+         * How often OkHttp pings the server. A missing pong fails the socket, so a
+         * connection that died silently (phone asleep, out of range) is noticed
+         * within about two intervals and the retry starts. The web notices within 15 s.
+         */
+        const val PING_INTERVAL_SECONDS = 10L
+
         fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
-            .pingInterval(30, TimeUnit.SECONDS)
+            .pingInterval(PING_INTERVAL_SECONDS, TimeUnit.SECONDS)
             .readTimeout(0, TimeUnit.SECONDS)
             .build()
     }
@@ -129,7 +136,7 @@ class WebSocketManager(
     private fun scheduleRetry() {
         retryJob?.cancel()
 
-        if (retryCount >= retryPolicy.maxRetries) {
+        if (retryPolicy.maxRetries != RetryPolicy.UNLIMITED && retryCount >= retryPolicy.maxRetries) {
             Log.w(TAG, "Max WebSocket retries (${retryPolicy.maxRetries}) reached. Giving up.")
             _events.tryEmit(SocketEvent.GaveUp(retryCount))
             retryCount = 0
@@ -137,7 +144,7 @@ class WebSocketManager(
         }
 
         val delayMs = retryPolicy.delayFor(retryCount)
-        retryCount++
+        if (retryCount < Int.MAX_VALUE) retryCount++
         Log.d(TAG, "Scheduling WebSocket retry #$retryCount in ${delayMs}ms")
         retryJob = scope.launch {
             delay(delayMs)

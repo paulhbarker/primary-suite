@@ -208,6 +208,24 @@ class WebSocketManagerTest {
     }
 
     @Test
+    fun `with the default limit it keeps retrying until the server is back`() {
+        manager.shutdown()
+        manager = WebSocketManager(
+            scope = scope,
+            urlProvider = { server.url(path).toString().replaceFirst("http", "ws") },
+            canConnect = { wifiUp },
+            retryPolicy = RetryPolicy(baseDelayMs = 5, maxDelayMs = 10),
+        )
+        repeat(15) { server.enqueue(MockResponse().setResponseCode(503)) }
+        server.enqueue(upgrade())
+
+        manager.connect()
+
+        awaitState(WebSocketConnectionState.CONNECTED)
+        assertEquals(16, server.requestCount)
+    }
+
+    @Test
     fun `announces every connect, including reconnects`() = runBlocking {
         server.enqueue(upgrade())
         server.enqueue(upgrade())

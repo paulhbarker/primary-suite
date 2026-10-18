@@ -39,15 +39,24 @@ interface GameConnection {
     fun shutdown()
 }
 
-/** Exponential backoff: base, 2x, 4x... capped at [maxDelayMs], up to [maxRetries] attempts. */
+/**
+ * Reconnect backoff, matching the web's sockets (`frontend/src/websocketOptions.ts`):
+ * 0.5, 1, 2 and 4 s, then every 5 s, and by default it never gives up, so a
+ * phone that slept or walked out of range gets back in on its own. A finite
+ * [maxRetries] makes the socket stop and emit [SocketEvent.GaveUp].
+ */
 data class RetryPolicy(
-    val baseDelayMs: Long = 1_000L,
-    val maxDelayMs: Long = 30_000L,
-    val maxRetries: Int = 10,
+    val baseDelayMs: Long = 500L,
+    val maxDelayMs: Long = 5_000L,
+    val maxRetries: Int = UNLIMITED,
 ) {
     /** Delay before retry number [attempt], counting from 0. */
     fun delayFor(attempt: Int): Long =
         (baseDelayMs * (1L shl attempt.coerceIn(0, 5))).coerceAtMost(maxDelayMs)
+
+    companion object {
+        const val UNLIMITED = Int.MAX_VALUE
+    }
 }
 
 /** Opens a game's socket in [scope]. `canConnect` reports whether WiFi is up. */

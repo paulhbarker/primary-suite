@@ -86,14 +86,16 @@ class WifiController(context: Context) : WifiConnector {
 
                     @Suppress("DEPRECATION")
                     val onTarget = networkInfo.isConnected &&
-                        networkInfo.typeName.equals("WIFI", ignoreCase = true) &&
+                        networkInfo.type == ConnectivityManager.TYPE_WIFI &&
                         currentSsid == currentTargetSsid
                     if (onTarget) {
                         Log.d(TAG, "Legacy broadcast: Connected to $currentSsid")
+                        bindToWifi()
                         _connectionStatus.value = WifiConnectionState.CONNECTED
                     } else if (_connectionStatus.value == WifiConnectionState.CONNECTED) {
                         // Dropped, or the phone moved to another network.
                         Log.w(TAG, "Legacy broadcast: Lost $currentTargetSsid")
+                        connectivityManager.bindProcessToNetwork(null)
                         _connectionStatus.value = WifiConnectionState.DISCONNECTED
                     }
                 }
@@ -227,6 +229,25 @@ class WifiController(context: Context) : WifiConnector {
         }
     }
 
+    /**
+     * API 23-28: send this app's traffic over the event Wi-Fi. The Pi's network
+     * has no internet, so Android may keep mobile data as the default route, and
+     * then `10.0.0.1` is unreachable. API 29+ binds in its NetworkCallback.
+     */
+    @Suppress("DEPRECATION") // allNetworks: still the way to list networks on API 23-28
+    private fun bindToWifi() {
+        val wifi = connectivityManager.allNetworks.firstOrNull { network ->
+            connectivityManager.getNetworkCapabilities(network)
+                ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        }
+        if (wifi == null) {
+            Log.w(TAG, "Legacy: connected, but no Wi-Fi network to bind to")
+            return
+        }
+        connectivityManager.bindProcessToNetwork(wifi)
+        Log.d(TAG, "Legacy: bound the app to $wifi")
+    }
+
     override fun disconnect() = disconnectFromWifi()
 
     private fun disconnectFromWifi() {
@@ -246,6 +267,7 @@ class WifiController(context: Context) : WifiConnector {
             currentNetworkCallback = null
             connectivityManager.bindProcessToNetwork(null)
         } else {
+            connectivityManager.bindProcessToNetwork(null)
             @Suppress("DEPRECATION")
             if (addedNetworkId != -1) {
                 wifiManager.disconnect()
