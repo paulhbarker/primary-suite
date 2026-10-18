@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/paulhbarker/primary-suite/compare/v2.1.0...v2.2.0) (2026-10-18)
+
+
+### Features
+
+* **lucky-tap:** tappable playing-card grid, press button, stat tiles ([#6](https://github.com/paulhbarker/primary-suite/issues/6)) ([e157952](https://github.com/paulhbarker/primary-suite/commit/e1579529e49576f78b51665cb745dd08d03e2708))
+
 ## [2.1.0](https://github.com/paulhbarker/primary-suite/compare/v2.0.0...v2.1.0) (2026-10-18)
 
 
