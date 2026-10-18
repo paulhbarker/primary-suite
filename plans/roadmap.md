@@ -1,6 +1,6 @@
 # Primary Suite: roadmap
 
-> Status: **Phase 6: merge the 2.0.0 release PR** (#4). Every game has tools and has been checked on a phone against the Pi. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
+> Status: **Released 2.0.0.** Every game has tools and was checked on a phone against the Pi. Next: roles (the last item under "Later"), when needed. Update the status line and the progress log at the bottom whenever a phase starts or finishes.
 
 ## Goal
 
@@ -187,7 +187,7 @@ Decisions and findings:
 
 - [x] Run a full on-device check on the old phone against the Pi (`10.0.0.1`): WiFi auto-connect, every Lucky Tap mode, every extra, and the projected display reacting.
 - [x] Update the README for the suite: architecture, how to add a game, how to run the tests.
-- [ ] Merge the release-please PR, which should then read 2.0.0, and check that the signed APK and landing page publish.
+- [x] Merge the release-please PR, which should then read 2.0.0, and check that the signed APK and landing page publish.
 
 ### Later: one phase per game
 
@@ -216,3 +216,4 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 | 2026-10-17 | 4 | Lucky Tap is now Compose, and the XML screens are gone. 122 tests in 16 s with 2 test workers; the suite peaks at 4.1 GB of WSL memory. The earlier setting of 8 uncapped test JVMs, run in the same command as an R8 release build, ran WSL (8 GB) out of memory, so the forks are capped and the limits are recorded in `AGENTS.md`. |
 | 2026-10-17 | 5 | Live game state, the winners stepper, Check in all, Scan all and refresh are done. 152 tests in 21.5 s. The release APK is 2.9 MB. |
 | 2026-10-17 | 6 | Device check on a Galaxy S10+ (SM-G975U), Android 12 (API 31), against the Pi on `GroveParkPrimary` (now WPA2/AES only). The app joined the network on its own in about 9 s and sent its traffic over it. State Switch, Block Stacker, Reel Rush, Jeopardy! and the Button Debugger all worked against the live displays. After the phone slept for 10 min, the open game screen reconnected 3 s after waking. Fixed during the check: the Wi-Fi password was written to logcat, and the game-button stand-ins now fire on touch. Lucky Tap with real NFC cards also passes. |
+| 2026-10-18 | 6 | Released v2.0.0: release-please created the tag and called build-release automatically, which attached the signed `app-release.apk` (3.2 MB, `com.primarysuite.app` 2.0.0, versionCode 20000) and `.aab`. The install page's `/latest/download/app-release.apk` link serves it. New icon (four arcade buttons on navy) and per-game colours on the home screen went in just before. |
