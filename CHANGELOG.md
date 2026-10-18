@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/paulhbarker/primary-suite/compare/v2.3.0...v2.4.0) (2026-10-18)
+
+
+### Features
+
+* **state-switch:** full-screen display mode ([#10](https://github.com/paulhbarker/primary-suite/issues/10)) ([30f393d](https://github.com/paulhbarker/primary-suite/commit/30f393db6d3d67830e16be778f2042a5b2a57daa))
+
 ## [2.3.0](https://github.com/paulhbarker/primary-suite/compare/v2.2.0...v2.3.0) (2026-10-18)
 
 
