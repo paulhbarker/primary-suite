@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/paulhbarker/primary-suite/compare/v2.2.0...v2.3.0) (2026-10-18)
+
+
+### Features
+
+* allow tablets to rotate ([#8](https://github.com/paulhbarker/primary-suite/issues/8)) ([b0725de](https://github.com/paulhbarker/primary-suite/commit/b0725de444f921306e183af315ce771e666db65c))
+
 ## [2.2.0](https://github.com/paulhbarker/primary-suite/compare/v2.1.0...v2.2.0) (2026-10-18)
 
 
