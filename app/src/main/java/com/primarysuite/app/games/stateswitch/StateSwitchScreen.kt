@@ -1,5 +1,6 @@
 package com.primarysuite.app.games.stateswitch
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -71,6 +73,7 @@ object StateSwitchTags {
     const val RESET_ALL = "stateSwitch.resetAll"
     const val CONFIRM = "stateSwitch.confirm"
     const val CONNECTING = "stateSwitch.connecting"
+    const val DISPLAY = "stateSwitch.display"
 }
 
 /** Wires the screen to its view model. */
@@ -87,6 +90,13 @@ fun StateSwitchRoute(vm: StateSwitchViewModel, onBack: () -> Unit) {
         onDispose { view.keepScreenOn = false }
     }
 
+    var display by rememberSaveable { mutableStateOf(false) }
+    if (display) {
+        BackHandler { display = false }
+        StateSwitchDisplay(ui)
+        return
+    }
+
     StateSwitchScreen(
         ui = ui,
         snackbar = snackbar,
@@ -95,6 +105,7 @@ fun StateSwitchRoute(vm: StateSwitchViewModel, onBack: () -> Unit) {
         onResetActuations = vm::resetActuations,
         onResetAll = vm::resetAll,
         onBack = onBack,
+        onDisplay = { display = true },
     )
 }
 
@@ -109,6 +120,7 @@ fun StateSwitchScreen(
     onResetActuations: () -> Unit,
     onResetAll: () -> Unit,
     onBack: () -> Unit,
+    onDisplay: () -> Unit = {},
 ) {
     var confirmReset by rememberSaveable { mutableStateOf(false) }
 
@@ -126,6 +138,13 @@ fun StateSwitchScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back)) }
+                },
+                actions = {
+                    IconButton(
+                        onClick = onDisplay,
+                        enabled = ui.settings != null,
+                        modifier = Modifier.testTag(StateSwitchTags.DISPLAY),
+                    ) { Icon(Icons.Outlined.Fullscreen, contentDescription = stringResource(R.string.state_switch_display)) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Background),
             )

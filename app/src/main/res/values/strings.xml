@@ -327,6 +327,7 @@
     <!-- State Switch -->
     <string name="state_switch_title">State Switch</string>
     <string name="state_switch_connecting">Connecting…</string>
+    <string name="state_switch_display">Display mode</string>
     <string name="state_switch_switch">Switch</string>
     <string name="state_switch_cooling_down">Cooling down…</string>
     <string name="state_switch_limit_reached">Limit reached</string>

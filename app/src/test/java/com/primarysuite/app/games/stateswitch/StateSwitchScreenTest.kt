@@ -48,6 +48,7 @@ class StateSwitchScreenTest {
     private var resetActuations = 0
     private var resetAlls = 0
     private var backs = 0
+    private var displays = 0
 
     private fun show() {
         compose.setContent {
@@ -60,6 +61,7 @@ class StateSwitchScreenTest {
                     onResetActuations = { resetActuations++ },
                     onResetAll = { resetAlls++ },
                     onBack = { backs++ },
+                    onDisplay = { displays++ },
                 )
             }
         }
@@ -197,5 +199,15 @@ class StateSwitchScreenTest {
         compose.onNodeWithTag(StateSwitchTags.RESET_ALL).performScrollTo().assertIsNotEnabled()
         compose.onNodeWithTag(StateSwitchTags.RESET_ACTUATIONS).assertIsNotEnabled()
         assertTrue(changes.isEmpty())
+    }
+
+    @Test
+    fun `display mode opens once the settings are in`() {
+        ui = StateSwitchUiState()
+        show()
+        compose.onNodeWithTag(StateSwitchTags.DISPLAY).assertIsNotEnabled()
+        ui = StateSwitchUiState(connected = true, settings = base)
+        compose.onNodeWithTag(StateSwitchTags.DISPLAY).assertIsEnabled().performClick()
+        assertEquals(1, displays)
     }
 }
