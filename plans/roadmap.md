@@ -17,7 +17,7 @@ The existing WiFi, WebSocket, NFC and settings code is reused, not rewritten. Ev
 | UI toolkit | Jetpack Compose with one activity and Navigation Compose. The XML layouts, `MainActivity` and `SettingsActivity` are deleted once the Lucky Tap port works. |
 | Theme | The current LuckyTap dark palette (`colors.xml`) and the socafe font, ported to a Compose `MaterialTheme`. |
 | Game catalog | Hardcoded in the app as a typed list (slug, name, blurb, icon, whether tools exist). No server endpoint yet. Revisit when roles arrive. |
-| Games listed | Every game the server hosts: Lucky Tap, Jeopardy!, State Switch, Reel Rush, Block Stacker, Button Debugger. Only Lucky Tap opens. The others show "Tools coming soon". Spin the Wheel is left out because it has no server engine. |
+| Games listed | Every game the server hosts: Lucky Tap, Jeopardy!, State Switch, Reel Rush, Block Stacker, Button Debugger. Every game now has tools (originally only Lucky Tap; the rest showed "Tools coming soon"). Spin the Wheel is left out because it has no server engine. |
 | Roles | None for now. Every game is listed as administrable. |
 | WiFi | App-wide. The home screen shows the target network and whether the phone is on it. Auto-connect logic stays as it is in `WifiController`. |
 | Server status | The home screen probes `http://{ip}:{port}/` over HTTP. Any HTTP response, a 404 included, counts as reachable. It does not open a socket. |
@@ -197,7 +197,7 @@ Each game gets its own plan in `plans/<game>.md` before work starts, covering wh
 2. State Switch (game type, timeout, move limit, reset). See [`plans/state-switch.md`](state-switch.md).
 3. Reel Rush. See [`plans/reel-rush.md`](reel-rush.md).
 4. Block Stacker. See [`plans/block-stacker.md`](block-stacker.md).
-5. Button Debugger
+5. Button Debugger. See [`plans/button-debug.md`](button-debug.md).
 6. Roles: limit the list to the games a user may administer. This needs a server-side source of truth.
 
 ## Open questions

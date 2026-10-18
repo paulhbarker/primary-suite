@@ -24,8 +24,8 @@ class GameCatalogTest {
     }
 
     @Test
-    fun `games with tools so far`() {
-        assertEquals(listOf(GameCatalog.LUCKY_TAP, GameCatalog.JEOPARDY, GameCatalog.STATE_SWITCH, GameCatalog.REEL_RUSH, GameCatalog.BLOCK_STACKER), GameCatalog.games.filter { it.hasTools }.map { it.slug })
+    fun `every game has tools`() {
+        assertEquals(listOf(GameCatalog.LUCKY_TAP, GameCatalog.JEOPARDY, GameCatalog.STATE_SWITCH, GameCatalog.REEL_RUSH, GameCatalog.BLOCK_STACKER, GameCatalog.BUTTON_DEBUG), GameCatalog.games.filter { it.hasTools }.map { it.slug })
     }
 
     @Test

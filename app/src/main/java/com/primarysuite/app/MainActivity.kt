@@ -25,6 +25,7 @@ import com.primarysuite.app.core.ui.vibrateBuzz
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.core.wifi.WifiSetupCoordinator
 import com.primarysuite.app.ui.PrimarySuiteNavHost
+import com.primarysuite.app.games.buttondebug.PrefsButtonColorStore
 import com.primarysuite.app.ui.suiteViewModelFactory
 import com.primarysuite.app.ui.theme.PrimarySuiteTheme
 import kotlinx.coroutines.launch
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
             nfc = container.nfc,
             strings = container.strings,
             onBuzz = { vibrateBuzz(applicationContext) },
+            buttonColors = PrefsButtonColorStore(getSharedPreferences("button-debug", MODE_PRIVATE)),
         )
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)

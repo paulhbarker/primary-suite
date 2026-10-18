@@ -18,6 +18,7 @@ object GameCatalog {
     const val STATE_SWITCH = "state-switch"
     const val BLOCK_STACKER = "block-stacker"
     const val REEL_RUSH = "reel-rush"
+    const val BUTTON_DEBUG = "button-debug"
 
     val games: List<Game> = listOf(
         Game(LUCKY_TAP, "Lucky Tap", "NFC check-in, check-out and draws", hasTools = true),
@@ -25,7 +26,7 @@ object GameCatalog {
         Game(STATE_SWITCH, "State Switch", "Game type, timeout and move limit", hasTools = true),
         Game(REEL_RUSH, "Reel Rush", "Rounds and scoring", hasTools = true),
         Game(BLOCK_STACKER, "Block Stacker", "Speed and levels", hasTools = true),
-        Game("button-debug", "Button Debugger", "Test the GPIO buttons and LEDs", hasTools = false),
+        Game(BUTTON_DEBUG, "Button Debugger", "Test the GPIO buttons and LEDs", hasTools = true),
     )
 
     fun find(slug: String): Game? = games.firstOrNull { it.slug == slug }

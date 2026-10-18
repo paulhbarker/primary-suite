@@ -51,7 +51,8 @@ class WebSocketManager(
     private val _connectionState = MutableStateFlow(WebSocketConnectionState.DISCONNECTED)
     override val connectionState: StateFlow<WebSocketConnectionState> = _connectionState.asStateFlow()
 
-    private val _events = MutableSharedFlow<SocketEvent>(extraBufferCapacity = 64)
+    // Large enough that a burst of messages (a noisy button sends many edges) isn't dropped by tryEmit.
+    private val _events = MutableSharedFlow<SocketEvent>(extraBufferCapacity = 1024)
     override val events: SharedFlow<SocketEvent> = _events.asSharedFlow()
 
     @Volatile private var webSocket: WebSocket? = null

@@ -77,3 +77,10 @@ fun List<DebugButton>.sortedByBoxOrder(colors: Map<Int, ButtonColor>): List<Debu
     sortedWith(
         compareBy<DebugButton> { ButtonColor.BOX_ORDER.indexOf(colors[it.id] ?: ButtonColor.RED) }.thenBy { it.id },
     )
+
+/** Keeps the picks for the life of the process only. The default where nothing is persisted. */
+class InMemoryButtonColorStore : ButtonColorStore {
+    private var colors: Map<Int, ButtonColor> = emptyMap()
+    override fun load(): Map<Int, ButtonColor> = colors
+    override fun save(colors: Map<Int, ButtonColor>) { this.colors = colors }
+}

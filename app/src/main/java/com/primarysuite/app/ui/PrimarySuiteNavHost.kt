@@ -24,6 +24,10 @@ import com.primarysuite.app.core.nfc.NfcHub
 import com.primarysuite.app.core.ui.StringProvider
 import com.primarysuite.app.core.config.serverConfig
 import com.primarysuite.app.games.blockstacker.BlockStackerRoute
+import com.primarysuite.app.games.buttondebug.ButtonColorStore
+import com.primarysuite.app.games.buttondebug.ButtonDebugRoute
+import com.primarysuite.app.games.buttondebug.ButtonDebugViewModel
+import com.primarysuite.app.games.buttondebug.InMemoryButtonColorStore
 import com.primarysuite.app.games.blockstacker.BlockStackerViewModel
 import com.primarysuite.app.games.jeopardy.HttpJeopardyBoardsApi
 import com.primarysuite.app.games.jeopardy.JeopardyBoardsApi
@@ -65,6 +69,8 @@ fun suiteViewModelFactory(
     socketFactory: SocketFactory = { slug, scope, canConnect -> gameSocket(slug, settings, scope, canConnect) },
     jeopardyBoards: JeopardyBoardsApi = HttpJeopardyBoardsApi({ settings.serverConfig.httpUrl }),
     onBuzz: () -> Unit = {},
+    /** Remembers which colour each box button is, for the Button Debugger. */
+    buttonColors: ButtonColorStore = InMemoryButtonColorStore(),
 ): ViewModelProvider.Factory = viewModelFactory {
     initializer { HomeViewModel(settings, wifi, probe, games) }
     initializer { SettingsViewModel(settings) }
@@ -89,6 +95,13 @@ fun suiteViewModelFactory(
     }
     initializer {
         ReelRushViewModel(wifi) { scope, canConnect -> socketFactory(ReelRushViewModel.GAME_SLUG, scope, canConnect) }
+    }
+    initializer {
+        ButtonDebugViewModel(
+            wifi = wifi,
+            socketFactory = { scope, canConnect -> socketFactory(ButtonDebugViewModel.GAME_SLUG, scope, canConnect) },
+            colorStore = buttonColors,
+        )
     }
 }
 
@@ -179,6 +192,10 @@ fun PrimarySuiteNavHost(
                 game.slug == GameCatalog.REEL_RUSH -> {
                     val vm: ReelRushViewModel = viewModel(factory = viewModelFactory)
                     ReelRushRoute(vm, onBack = onBack)
+                }
+                game.slug == GameCatalog.BUTTON_DEBUG -> {
+                    val vm: ButtonDebugViewModel = viewModel(factory = viewModelFactory)
+                    ButtonDebugRoute(vm, onBack = onBack)
                 }
                 else -> ComingSoonScreen(game, onBack = onBack)
             }

@@ -17,6 +17,7 @@ import com.primarysuite.app.catalog.Game
 import com.primarysuite.app.catalog.GameCatalog
 import com.primarysuite.app.games.blockstacker.BlockStackerTags
 import com.primarysuite.app.games.reelrush.ReelRushTags
+import com.primarysuite.app.games.buttondebug.ButtonDebugTags
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.config.serverConfig
 import com.primarysuite.app.core.nfc.NfcHub
@@ -140,6 +141,18 @@ class NavigationTest {
 
         pressBack()
         assertOnHome()
+    }
+
+    @Test
+    fun `Button Debugger opens on its own socket`() {
+        compose.onNodeWithTag(HomeTags.game("button-debug")).performClick()
+
+        compose.onNodeWithTag(ButtonDebugTags.LIST).assertExists()
+        assertEquals(listOf("button-debug"), socketSlugs)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
     }
 
     @Test
