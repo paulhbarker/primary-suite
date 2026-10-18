@@ -9,6 +9,8 @@ import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.config.effectiveWifiSsid
 import com.primarysuite.app.core.config.serverConfig
 import com.primarysuite.app.core.net.ServerProbe
+import com.primarysuite.app.core.tv.TvControl
+import com.primarysuite.app.core.tv.TvState
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.core.wifi.WifiConnector
 import kotlinx.coroutines.delay
@@ -28,6 +30,7 @@ data class HomeUiState(
     val server: ServerConfig,
     val serverStatus: ServerStatus,
     val games: List<Game>,
+    val tv: TvState = TvState(),
 )
 
 /**
@@ -40,6 +43,8 @@ class HomeViewModel(
     private val probe: ServerProbe,
     games: List<Game> = GameCatalog.games,
     private val probeIntervalMs: Long = DEFAULT_PROBE_INTERVAL_MS,
+    /** The TV. Only moves if this phone leads. */
+    private val tv: TvControl = TvControl.NONE,
 ) : ViewModel() {
 
     companion object {
@@ -62,6 +67,9 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
+            tv.state.collect { tvState -> _uiState.update { it.copy(tv = tvState) } }
+        }
+        viewModelScope.launch {
             combine(wifi.connectionState, refreshes) { state, _ -> state }.collectLatest { state ->
                 val server = settings.serverConfig
                 _uiState.update { it.copy(wifiState = state, wifiSsid = settings.effectiveWifiSsid, server = server) }
@@ -80,6 +88,21 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    /** A game was picked from the list: if this phone leads, the TV switches to it too. */
+    fun onGameSelected(game: Game) {
+        tv.show(game.slug)
+    }
+
+    /** Back on the list after a game: if this phone leads, the TV goes back to its welcome screen. */
+    fun onReturnedHome() {
+        tv.show("")
+    }
+
+    /** Makes this phone the one that moves the TV. */
+    fun takeOverTv() {
+        tv.takeOver()
     }
 
     /** Re-reads settings and checks the server now. */

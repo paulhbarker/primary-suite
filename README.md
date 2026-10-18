@@ -6,7 +6,7 @@ It opens on a list of the Simple Games games, and each one has its admin tools: 
 
 ## Features
 
-- **Game list**: every Simple Games game, with WiFi and game server status.
+- **Game list**: every Simple Games game, with WiFi and game server status. One phone leads the TV: picking a game puts it on the Simple Games display at `/tv`, and going back to the list returns the TV to its welcome screen. The first phone to connect leads, and keeps the TV (even asleep or closed) until another phone taps **Take over TV** on the status card.
 - **Lucky Tap scanner**: read, check in and check out NFC cards, sent to the server as they're tapped, or write a number (1–100) to a blank card.
 - **Lucky Tap game**: live checked-in cards with each card's odds and this round's scans, the last draw's winners, winners per draw, Check in all, Scan all, Clear scans and Reset game.
 - **Jeopardy! host**: the web host controller on the phone: lobby, board, clues with a hidden-until-peeked response, buzzers, judging, Daily Double wagers, players (scores, control, buttons), a drain-points screen, undo and settings. The phone vibrates when someone buzzes in.
@@ -53,6 +53,7 @@ It opens on a list of the Simple Games games, and each one has its admin tools: 
 | **LuckyTapScreen / LuckyTapViewModel** | `games/luckytap/` | Lucky Tap scanning station: read, check-in/out, write, reset, clear |
 | **WebSocketManager** | `core/net/WebSocketManager.kt` | One game's socket (`/ws/{slug}`): connect, send, receive, reconnect with backoff |
 | **ServerProbe** | `core/net/ServerProbe.kt` | HTTP check that the game server answers |
+| **TvLink** | `core/tv/TvLink.kt` | Holds `/ws/stage` while the app is on screen; moves the TV when this phone leads, and takes it over on request |
 | **GameMessage** | `core/protocol/GameMessage.kt` | `{type, payload}` encoding and decoding |
 | **WifiController / WifiSetupCoordinator** | `core/wifi/` | Joins the event network; permission and settings prompts |
 | **NfcHub / NfcHelper / NdefCodec** | `core/nfc/` | NFC state and tag routing, NDEF tag I/O, text-record parsing |

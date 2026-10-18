@@ -79,6 +79,13 @@
     <string name="home_section_games">Games</string>
     <string name="home_label_wifi">WiFi</string>
     <string name="home_label_server">Game server</string>
+    <string name="home_label_tv">TV</string>
+    <string name="home_tv_offline">Not connected</string>
+    <string name="home_tv_leader">This phone</string>
+    <string name="home_tv_leader_detail">Picking a game puts it on the TV</string>
+    <string name="home_tv_follower">Another phone</string>
+    <string name="home_tv_follower_detail">Picking a game here doesn\'t move the TV</string>
+    <string name="home_tv_take_over">Take over TV</string>
     <string name="home_wifi_connected">Connected</string>
     <string name="home_wifi_connecting">Connecting…</string>
     <string name="home_wifi_disconnected">Not connected</string>

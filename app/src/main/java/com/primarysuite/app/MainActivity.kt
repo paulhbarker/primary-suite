@@ -76,6 +76,7 @@ class MainActivity : ComponentActivity() {
             strings = container.strings,
             onBuzz = { vibrateBuzz(applicationContext) },
             buttonColors = PrefsButtonColorStore(getSharedPreferences("button-debug", MODE_PRIVATE)),
+            tv = container.tv,
         )
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
@@ -109,6 +110,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // The TV follows the first phone connected, so stay connected only
+        // while the app is on screen.
+        appContainer.tv.start()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        appContainer.tv.stop()
     }
 
     override fun onResume() {

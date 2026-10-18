@@ -4,6 +4,7 @@ import com.primarysuite.app.catalog.GameCatalog
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.testing.FakeServerProbe
+import com.primarysuite.app.testing.FakeTvControl
 import com.primarysuite.app.testing.FakeWifiConnector
 import com.primarysuite.app.testing.InMemoryConnectionSettings
 import com.primarysuite.app.testing.MainDispatcherRule
@@ -27,7 +28,8 @@ class HomeViewModelTest {
     private val settings = InMemoryConnectionSettings()
     private val wifi = FakeWifiConnector()
     private val probe = FakeServerProbe()
-    private val vm: HomeViewModel by lazy { HomeViewModel(settings, wifi, probe, probeIntervalMs = 5_000) }
+    private val tv = FakeTvControl()
+    private val vm: HomeViewModel by lazy { HomeViewModel(settings, wifi, probe, probeIntervalMs = 5_000, tv = tv) }
 
     private val state: HomeUiState get() = vm.uiState.value
 
@@ -50,6 +52,22 @@ class HomeViewModelTest {
         assertEquals(GameCatalog.games, state.games)
         assertEquals("EventNet", state.wifiSsid)
         assertEquals(ServerConfig("10.0.0.1", "8080"), state.server)
+    }
+
+    @Test
+    fun `picking a game puts it on the TV, and coming back home clears it`(): Unit = homeTest {
+        vm.onGameSelected(GameCatalog.find(GameCatalog.REEL_RUSH)!!)
+        vm.onReturnedHome()
+        assertEquals(listOf("reel-rush", ""), tv.shown)
+    }
+
+    @Test
+    fun `shows whether this phone leads the TV`(): Unit = homeTest {
+        runCurrent()
+        assertEquals(true, state.tv.leader)
+        tv.state.value = tv.state.value.copy(leader = false)
+        runCurrent()
+        assertEquals(false, state.tv.leader)
     }
 
     @Test

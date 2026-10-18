@@ -27,6 +27,7 @@ import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.games.luckytap.LuckyTapTags
 import com.primarysuite.app.testing.FakeGameConnection
 import com.primarysuite.app.testing.FakeServerProbe
+import com.primarysuite.app.testing.FakeTvControl
 import com.primarysuite.app.testing.FakeWifiConnector
 import com.primarysuite.app.testing.InMemoryConnectionSettings
 import com.primarysuite.app.ui.home.HomeTags
@@ -58,6 +59,8 @@ class NavigationTest {
     private val socket = FakeGameConnection()
     private val nfc = NfcHub()
     private val socketSlugs = mutableListOf<String>()
+    private val tv = FakeTvControl()
+    private val tvShown get() = tv.shown
 
     private var nfcSettingsOpened = 0
     private val saved = mutableListOf<SettingsSaved>()
@@ -78,6 +81,7 @@ class NavigationTest {
                         socketFactory = { slug, _, _ -> socketSlugs += slug; socket },
                         games = games,
                         jeopardyBoards = { Result.success(emptyList()) },
+                        tv = tv,
                     ),
                     games = games,
                     onEnableNfc = { nfcSettingsOpened++ },
@@ -112,6 +116,47 @@ class NavigationTest {
         pressBack()
         assertOnHome()
         assertEquals(true, socket.shutdownCalled)
+    }
+
+    @Test
+    fun `the TV follows into a game and back out to its welcome screen`() {
+        compose.waitForIdle()
+        assertEquals("opening the app leaves the TV alone", emptyList<String>(), tvShown)
+
+        compose.onNodeWithTag(HomeTags.game("reel-rush")).performClick()
+        compose.waitForIdle()
+        assertEquals(listOf("reel-rush"), tvShown)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(listOf("reel-rush", ""), tvShown)
+    }
+
+    @Test
+    fun `a phone that isn't leading can take over the TV`() {
+        compose.onNodeWithTag(HomeTags.TV_TAKE_OVER).assertDoesNotExist()
+        tv.state.value = tv.state.value.copy(leader = false)
+        compose.waitForIdle()
+
+        compose.onNodeWithTag(HomeTags.game("reel-rush")).performClick()
+        compose.waitForIdle()
+        assertEquals("a follower's picks don't move the TV", emptyList<String>(), tvShown)
+        pressBack()
+
+        compose.onNodeWithTag(HomeTags.TV_TAKE_OVER).performClick()
+        compose.waitForIdle()
+        assertEquals(1, tv.takeOvers)
+        compose.onNodeWithTag(HomeTags.TV_TAKE_OVER).assertDoesNotExist()
+        compose.onNodeWithContentDescription("${s(R.string.home_label_tv)}: ${s(R.string.home_tv_leader)}").assertExists()
+    }
+
+    @Test
+    fun `leaving Settings leaves the TV alone`() {
+        compose.onNodeWithContentDescription(s(R.string.cd_open_settings)).performClick()
+        compose.waitForIdle()
+        pressBack()
+        assertOnHome()
+        assertEquals(emptyList<String>(), tvShown)
     }
 
     @Test

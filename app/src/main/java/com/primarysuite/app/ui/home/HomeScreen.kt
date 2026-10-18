@@ -26,10 +26,12 @@ import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -57,6 +59,8 @@ import com.primarysuite.app.ui.theme.AppColors
 object HomeTags {
     const val WIFI_STATUS = "home.wifi"
     const val SERVER_STATUS = "home.server"
+    const val TV_STATUS = "home.tv"
+    const val TV_TAKE_OVER = "home.tv.takeOver"
     fun game(slug: String) = "home.game.$slug"
 }
 
@@ -67,6 +71,7 @@ fun HomeScreen(
     onGameClick: (Game) -> Unit,
     onSettingsClick: () -> Unit,
     onWifiClick: () -> Unit,
+    onTakeOverTv: () -> Unit = {},
 ) {
     Scaffold(
         containerColor = AppColors.Background,
@@ -88,7 +93,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item { SectionHeader(stringResource(R.string.home_section_status)) }
-            item { ConnectionStatus(state, onWifiClick) }
+            item { ConnectionStatus(state, onWifiClick, onTakeOverTv) }
             item { SectionHeader(stringResource(R.string.home_section_games), Modifier.padding(top = 8.dp)) }
             items(state.games, key = { it.slug }) { game ->
                 GameRow(game, onClick = { onGameClick(game) })
@@ -98,7 +103,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun ConnectionStatus(state: HomeUiState, onWifiClick: () -> Unit) {
+private fun ConnectionStatus(state: HomeUiState, onWifiClick: () -> Unit, onTakeOverTv: () -> Unit) {
     val (wifiValue, wifiTone) = when (state.wifiState) {
         WifiConnectionState.CONNECTED -> stringResource(R.string.home_wifi_connected) to StatusTone.OK
         WifiConnectionState.CONNECTING -> stringResource(R.string.home_wifi_connecting) to StatusTone.BUSY
@@ -129,6 +134,25 @@ private fun ConnectionStatus(state: HomeUiState, onWifiClick: () -> Unit) {
             detail = state.server.toString(),
             modifier = Modifier.testTag(HomeTags.SERVER_STATUS),
         )
+        val (tvValue, tvTone, tvDetail) = when {
+            !state.tv.connected -> Triple(stringResource(R.string.home_tv_offline), StatusTone.NEUTRAL, null)
+            state.tv.leader -> Triple(stringResource(R.string.home_tv_leader), StatusTone.OK, stringResource(R.string.home_tv_leader_detail))
+            else -> Triple(stringResource(R.string.home_tv_follower), StatusTone.NEUTRAL, stringResource(R.string.home_tv_follower_detail))
+        }
+        StatusRow(
+            label = stringResource(R.string.home_label_tv),
+            value = tvValue,
+            tone = tvTone,
+            detail = tvDetail,
+            modifier = Modifier.testTag(HomeTags.TV_STATUS),
+        )
+        if (state.tv.connected && !state.tv.leader) {
+            OutlinedButton(onClick = onTakeOverTv, modifier = Modifier.fillMaxWidth().testTag(HomeTags.TV_TAKE_OVER)) {
+                Icon(Icons.Outlined.Tv, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.home_tv_take_over))
+            }
+        }
     }
 }
 

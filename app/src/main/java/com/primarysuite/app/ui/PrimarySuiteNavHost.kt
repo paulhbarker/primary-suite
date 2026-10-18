@@ -2,6 +2,7 @@ package com.primarysuite.app.ui
 
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
@@ -41,6 +42,7 @@ import com.primarysuite.app.games.stateswitch.StateSwitchViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapViewModel
 import kotlinx.coroutines.CoroutineScope
 import com.primarysuite.app.core.wifi.WifiConnector
+import com.primarysuite.app.core.tv.TvControl
 import com.primarysuite.app.ui.comingsoon.ComingSoonScreen
 import com.primarysuite.app.ui.home.HomeScreen
 import com.primarysuite.app.ui.home.HomeViewModel
@@ -71,8 +73,10 @@ fun suiteViewModelFactory(
     onBuzz: () -> Unit = {},
     /** Remembers which colour each box button is, for the Button Debugger. */
     buttonColors: ButtonColorStore = InMemoryButtonColorStore(),
+    /** The TV, which follows the first phone connected. None by default, for tests. */
+    tv: TvControl = TvControl.NONE,
 ): ViewModelProvider.Factory = viewModelFactory {
-    initializer { HomeViewModel(settings, wifi, probe, games) }
+    initializer { HomeViewModel(settings, wifi, probe, games, tv = tv) }
     initializer { SettingsViewModel(settings) }
     initializer {
         LuckyTapViewModel(strings, wifi, nfc, { scope, canConnect ->
@@ -121,15 +125,33 @@ fun PrimarySuiteNavHost(
     serverBase: () -> String = { "" },
     navController: NavHostController = rememberNavController(),
 ) {
+    // Back from a game to the list: the TV goes back to its welcome screen.
+    // Only that move counts, so opening the app or leaving Settings leaves
+    // the TV alone.
+    LaunchedEffect(navController) {
+        var previous: String? = null
+        navController.currentBackStackEntryFlow.collect { entry ->
+            val route = entry.destination.route
+            if (route == Routes.HOME && previous == Routes.GAME) {
+                ViewModelProvider(entry, viewModelFactory)[HomeViewModel::class.java].onReturnedHome()
+            }
+            previous = route
+        }
+    }
+
     NavHost(navController, startDestination = Routes.HOME) {
         composable(Routes.HOME) {
             val home: HomeViewModel = viewModel(factory = viewModelFactory)
             val state by home.uiState.collectAsStateWithLifecycle()
             HomeScreen(
                 state = state,
-                onGameClick = { game -> navController.navigate(Routes.game(game.slug)) },
+                onGameClick = { game ->
+                    home.onGameSelected(game)
+                    navController.navigate(Routes.game(game.slug))
+                },
                 onSettingsClick = { navController.navigate(Routes.SETTINGS) },
                 onWifiClick = onWifiRetry,
+                onTakeOverTv = home::takeOverTv,
             )
         }
 

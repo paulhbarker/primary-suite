@@ -11,6 +11,8 @@ import com.primarysuite.app.core.net.GameConnection
 import com.primarysuite.app.core.net.SocketEvent
 import com.primarysuite.app.core.net.WebSocketConnectionState
 import com.primarysuite.app.core.protocol.GameMessage
+import com.primarysuite.app.core.tv.TvControl
+import com.primarysuite.app.core.tv.TvState
 import com.primarysuite.app.core.ui.StringProvider
 import com.primarysuite.app.core.wifi.WifiConnectionState
 import com.primarysuite.app.core.wifi.WifiConnector
@@ -118,5 +120,27 @@ class FakeNfcTag(
 
     companion object {
         fun card(number: Int) = FakeNfcTag(NfcScanResult(success = true, data = number.toString()))
+    }
+}
+
+/** A [TvControl] that records what it was asked to show. */
+class FakeTvControl(leader: Boolean = true) : TvControl {
+    override val state = MutableStateFlow(TvState(connected = true, leader = leader))
+    /** What the TV was told to show, in order ("" = welcome screen). */
+    val shown = mutableListOf<String>()
+
+    var takeOvers = 0
+        private set
+
+    override fun show(gameSlug: String): Boolean {
+        if (!state.value.leader) return false
+        shown += gameSlug
+        return true
+    }
+
+    override fun takeOver(): Boolean {
+        takeOvers++
+        state.value = state.value.copy(leader = true)
+        return true
     }
 }
