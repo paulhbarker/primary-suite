@@ -1,6 +1,18 @@
 package com.primarysuite.app.games.luckytap
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import com.primarysuite.app.core.ui.PressButton
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -91,11 +103,7 @@ internal fun GameTab(state: LuckyTapScreenState, actions: LuckyTapActions, onCon
                 )
             }
 
-            StatusCard {
-                SummaryRow(stringResource(R.string.game_checked_in), game.checkedIn.size.toString())
-                SummaryRow(stringResource(R.string.game_round_scans), game.scansThisRound.toString())
-                WinnersStepper(game.numWinners, enabled = canAdmin, onChange = actions.onSetNumWinners)
-            }
+            StatTiles(game, canAdmin, actions.onSetNumWinners)
 
             DrawStatus(game)
 
@@ -105,7 +113,16 @@ internal fun GameTab(state: LuckyTapScreenState, actions: LuckyTapActions, onCon
                     Icon(Icons.Outlined.Refresh, contentDescription = stringResource(R.string.game_refresh))
                 }
             }
-            CardGrid(game)
+            CardGrid(game, canAdmin, actions.onSimulateScan)
+
+            PressButton(
+                text = stringResource(R.string.game_press_button),
+                onPress = actions.onPressButton,
+                enabled = canAdmin,
+                minHeight = 72.dp,
+                fontSize = 20.sp,
+                modifier = Modifier.testTag(LuckyTapTags.PRESS_BUTTON),
+            )
 
             SectionHeader(stringResource(R.string.section_admin), Modifier.padding(top = 8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -133,36 +150,48 @@ internal fun GameTab(state: LuckyTapScreenState, actions: LuckyTapActions, onCon
     }
 }
 
+/** Three stat tiles in a row: checked in, scans this round, and a winners stepper. */
 @Composable
-private fun SummaryRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, color = AppColors.OnSurface)
-        Text(value, style = MaterialTheme.typography.titleMedium, color = AppColors.OnSurface, fontWeight = FontWeight.Bold)
+private fun StatTiles(game: LuckyTapGameState, enabled: Boolean, onChange: (Int) -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    val tile = Modifier
+        .background(AppColors.SurfaceVariant, shape)
+        .border(1.dp, AppColors.Outline, shape)
+        .padding(vertical = 10.dp, horizontal = 8.dp)
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StatTile(stringResource(R.string.game_checked_in), game.checkedIn.size.toString(), AppColors.PrimaryGreen, tile.weight(1f).fillMaxHeight())
+        StatTile(stringResource(R.string.game_scans_short), game.scansThisRound.toString(), AppColors.OnSurface, tile.weight(1f).fillMaxHeight())
+        Column(tile.weight(1.3f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = { onChange(game.numWinners - 1) },
+                    enabled = enabled && game.numWinners > 1,
+                    modifier = Modifier.size(32.dp).testTag(LuckyTapTags.FEWER_WINNERS),
+                ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.cd_fewer_winners)) }
+                Text(
+                    game.numWinners.toString(),
+                    modifier = Modifier.widthIn(min = 28.dp).testTag(LuckyTapTags.NUM_WINNERS),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.Warning,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+                IconButton(
+                    onClick = { onChange(game.numWinners + 1) },
+                    enabled = enabled && game.numWinners < LuckyTapViewModel.MAX_WINNERS,
+                    modifier = Modifier.size(32.dp).testTag(LuckyTapTags.MORE_WINNERS),
+                ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.cd_more_winners)) }
+            }
+            Text(stringResource(R.string.game_winners_short), color = AppColors.OnSurfaceMedium, fontSize = 12.sp)
+        }
     }
 }
 
 @Composable
-private fun WinnersStepper(count: Int, enabled: Boolean, onChange: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.game_num_winners), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, color = AppColors.OnSurface)
-        IconButton(
-            onClick = { onChange(count - 1) },
-            enabled = enabled && count > 1,
-            modifier = Modifier.testTag(LuckyTapTags.FEWER_WINNERS),
-        ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.cd_fewer_winners)) }
-        Text(
-            count.toString(),
-            modifier = Modifier.width(32.dp).testTag(LuckyTapTags.NUM_WINNERS),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.OnSurface,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
-        IconButton(
-            onClick = { onChange(count + 1) },
-            enabled = enabled && count < LuckyTapViewModel.MAX_WINNERS,
-            modifier = Modifier.testTag(LuckyTapTags.MORE_WINNERS),
-        ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.cd_more_winners)) }
+private fun StatTile(label: String, value: String, valueColor: androidx.compose.ui.graphics.Color, modifier: Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Text(value, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = valueColor)
+        Text(label, color = AppColors.OnSurfaceMedium, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
@@ -185,50 +214,68 @@ private fun DrawStatus(game: LuckyTapGameState) {
     )
 }
 
-/** One tile per checked-in card: number, odds, and this round's scan count. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * One playing card (5:7) per checked-in card, filling the width. Tap one to
+ * simulate scanning it.
+ */
 @Composable
-private fun CardGrid(game: LuckyTapGameState) {
+private fun CardGrid(game: LuckyTapGameState, enabled: Boolean, onScan: (Int) -> Unit) {
     if (game.checkedIn.isEmpty()) {
         Text(stringResource(R.string.game_no_cards), color = AppColors.OnSurfaceMedium, style = MaterialTheme.typography.bodyMedium)
         return
     }
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        game.checkedIn.forEach { card ->
-            val scans = game.roundScans[card] ?: 0
-            val odds = game.oddsPercent(card)
-            val description = stringResource(R.string.cd_card_odds, card, odds, scans)
-            Box(
-                Modifier
-                    .size(width = 64.dp, height = 60.dp)
-                    .background(AppColors.SurfaceVariant, RoundedCornerShape(10.dp))
-                    .border(
-                        width = if (scans > 0) 2.dp else 1.dp,
-                        color = if (scans > 0) AppColors.PrimaryGreen else AppColors.Outline,
-                        shape = RoundedCornerShape(10.dp),
-                    )
-                    .testTag(LuckyTapTags.card(card))
-                    .clearAndSetSemantics { contentDescription = description },
-            ) {
-                Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(card.toString(), color = AppColors.OnSurface, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(
-                        "$odds%",
-                        color = if (odds < 100) AppColors.Warning else AppColors.OnSurfaceMedium,
-                        fontSize = 11.sp,
-                    )
-                }
-                if (scans > 0) {
-                    Text(
-                        "×$scans",
-                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 4.dp, top = 2.dp),
-                        color = AppColors.PrimaryGreen,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+    val gap = 8.dp
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = ((maxWidth + gap) / (72.dp + gap)).toInt().coerceAtLeast(1)
+        val cardWidth = (maxWidth - gap * (columns - 1)) / columns
+        val shape = RoundedCornerShape(8.dp)
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            game.checkedIn.chunked(columns).forEach { rowCards ->
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    rowCards.forEach { card ->
+                        val scans = game.roundScans[card] ?: 0
+                        val odds = game.oddsPercent(card)
+                        val description = stringResource(R.string.cd_card_odds, card, odds, scans)
+                        Box(
+                            Modifier
+                                .width(cardWidth)
+                                .aspectRatio(5f / 7f)
+                                .background(AppColors.SurfaceVariant, shape)
+                                .border(
+                                    width = if (scans > 0) 2.dp else 1.dp,
+                                    color = if (scans > 0) AppColors.PrimaryGreen else AppColors.Outline,
+                                    shape = shape,
+                                )
+                                .clip(shape)
+                                .clickable(enabled = enabled) { onScan(card) }
+                                .testTag(LuckyTapTags.card(card))
+                                .clearAndSetSemantics {
+                                    contentDescription = description
+                                    role = Role.Button
+                                    if (enabled) onClick { onScan(card); true }
+                                },
+                        ) {
+                            Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(card.toString(), color = AppColors.OnSurface, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                                Text(
+                                    "$odds%",
+                                    color = if (odds < 100) AppColors.Warning else AppColors.OnSurfaceMedium,
+                                    fontSize = 11.sp,
+                                )
+                            }
+                            if (scans > 0) {
+                                Text(
+                                    "×$scans",
+                                    modifier = Modifier.align(Alignment.TopEnd).padding(end = 5.dp, top = 3.dp),
+                                    color = AppColors.PrimaryGreen,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-    Spacer(Modifier.size(0.dp))
 }

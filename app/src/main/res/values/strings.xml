@@ -153,6 +153,9 @@
     <string name="game_last_draw_failed">Last draw failed: %1$s</string>
     <string name="game_no_cards">No cards checked in yet.</string>
     <string name="game_cards_header">Cards (odds)</string>
+    <string name="game_press_button">Press button</string>
+    <string name="game_scans_short">Scans</string>
+    <string name="game_winners_short">Winners</string>
     <string name="game_refresh">Refresh</string>
     <string name="cd_fewer_winners">Fewer winners</string>
     <string name="cd_more_winners">More winners</string>
