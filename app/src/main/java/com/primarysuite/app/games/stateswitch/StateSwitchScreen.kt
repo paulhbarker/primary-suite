@@ -55,6 +55,7 @@ import com.primarysuite.app.R
 import com.primarysuite.app.core.ui.OfflineBadge
 import com.primarysuite.app.core.ui.Picker
 import com.primarysuite.app.core.ui.PickerOption
+import com.primarysuite.app.core.ui.PressButton
 import com.primarysuite.app.ui.theme.AppColors
 import java.util.Locale
 
@@ -202,18 +203,13 @@ private fun SwitchButton(ui: StateSwitchUiState, onSwitch: () -> Unit) {
         ui.cooldown -> R.string.state_switch_cooling_down
         else -> R.string.state_switch_switch
     }
-    Button(
-        onClick = onSwitch,
+    // Fires on touch, like the physical button.
+    PressButton(
+        text = stringResource(label),
+        onPress = onSwitch,
         enabled = ui.canSwitch,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp).testTag(StateSwitchTags.SWITCH),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors.SecondaryBlue,
-            contentColor = AppColors.OnPrimary,
-            disabledContainerColor = AppColors.SurfaceVariant,
-            disabledContentColor = AppColors.OnSurfaceDim,
-        ),
-    ) { Text(stringResource(label), fontSize = 26.sp, fontWeight = FontWeight.Bold) }
+        modifier = Modifier.testTag(StateSwitchTags.SWITCH),
+    )
 }
 
 @Composable

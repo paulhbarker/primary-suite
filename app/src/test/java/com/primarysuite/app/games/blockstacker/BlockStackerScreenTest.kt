@@ -19,6 +19,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -156,9 +157,13 @@ class BlockStackerScreenTest {
     }
 
     @Test
-    fun `test button press sends a press`() {
+    fun `test button press sends a press on touch, not on release`() {
         show()
-        click(BlockStackerTags.TEST_PRESS)
+        compose.onNodeWithTag(BlockStackerTags.TEST_PRESS).performScrollTo().performTouchInput { down(center) }
+        compose.waitForIdle()
+        assertEquals(1, presses)
+        compose.onNodeWithTag(BlockStackerTags.TEST_PRESS).performTouchInput { up() }
+        compose.waitForIdle()
         assertEquals(1, presses)
     }
 

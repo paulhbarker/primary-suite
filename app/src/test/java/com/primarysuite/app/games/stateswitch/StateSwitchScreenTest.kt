@@ -18,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.primarysuite.app.R
@@ -137,6 +138,17 @@ class StateSwitchScreenTest {
     fun `switch presses the button`() {
         show()
         click(StateSwitchTags.SWITCH)
+        assertEquals(1, switches)
+    }
+
+    @Test
+    fun `switch fires on touch, not on release`() {
+        show()
+        compose.onNodeWithTag(StateSwitchTags.SWITCH).performTouchInput { down(center) }
+        compose.waitForIdle()
+        assertEquals(1, switches)
+        compose.onNodeWithTag(StateSwitchTags.SWITCH).performTouchInput { up() }
+        compose.waitForIdle()
         assertEquals(1, switches)
     }
 

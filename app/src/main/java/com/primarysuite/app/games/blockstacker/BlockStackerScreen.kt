@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.primarysuite.app.R
+import com.primarysuite.app.core.ui.PressButton
 import com.primarysuite.app.core.ui.OfflineBadge
 import com.primarysuite.app.ui.theme.AppColors
 import java.time.Instant
@@ -149,18 +150,15 @@ fun BlockStackerScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 SettingsSection(ui, onEdit, onSave, onResetDefaults)
-                Button(
-                    onClick = onTestPress,
+                // Fires on touch, like the physical button.
+                PressButton(
+                    text = stringResource(R.string.blockstacker_test_press),
+                    onPress = onTestPress,
                     enabled = ui.connected,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).testTag(BlockStackerTags.TEST_PRESS),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.SecondaryBlue,
-                        contentColor = AppColors.OnPrimary,
-                        disabledContainerColor = AppColors.SurfaceVariant,
-                        disabledContentColor = AppColors.OnSurfaceDim,
-                    ),
-                ) { Text(stringResource(R.string.blockstacker_test_press), fontSize = 20.sp, fontWeight = FontWeight.Bold) }
+                    minHeight = 72.dp,
+                    fontSize = 20.sp,
+                    modifier = Modifier.testTag(BlockStackerTags.TEST_PRESS),
+                )
 
                 HorizontalDivider(color = AppColors.Outline)
                 StatusSection(ui.state, zone)
