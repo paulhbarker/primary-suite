@@ -109,6 +109,7 @@ object LuckyTapTags {
     const val MORE_WINNERS = "luckytap.moreWinners"
     const val NUM_WINNERS = "luckytap.numWinners"
     const val DRAW_STATUS = "luckytap.drawStatus"
+    const val PRESS_BUTTON = "luckytap.pressButton"
     fun card(number: Int) = "luckytap.card.$number"
 }
 
@@ -145,6 +146,8 @@ data class LuckyTapActions(
     val onRefresh: () -> Unit = {},
     val onSetNumWinners: (Int) -> Unit = {},
     val onStopScanning: () -> Unit = {},
+    val onSimulateScan: (Int) -> Unit = {},
+    val onPressButton: () -> Unit = {},
 )
 
 internal enum class Confirm { RESET, CLEAR, CHECK_IN_ALL, SCAN_ALL }
@@ -197,6 +200,8 @@ fun LuckyTapRoute(vm: LuckyTapViewModel, onBack: () -> Unit, onEnableNfc: () -> 
         actions = LuckyTapActions(
             onBack = onBack,
             onEnableNfc = onEnableNfc,
+            onSimulateScan = vm::onSimulateScan,
+            onPressButton = vm::onPressButton,
             onRead = vm::onReadButtonModeSelected,
             onCheckIn = vm::onCheckInButtonModeSelected,
             onCheckOut = vm::onCheckOutButtonModeSelected,

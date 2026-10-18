@@ -295,6 +295,14 @@ class LuckyTapViewModel(
     fun onCheckInAll() = sendAdmin("admin-check-in-all", R.string.status_check_in_all_sent, R.string.status_admin_no_connection)
     fun onScanAll() = sendAdmin("admin-scan-all", R.string.status_scan_all_sent, R.string.status_admin_no_connection)
 
+    /** Simulates scanning a card, as if its tag had been read: no NFC needed. */
+    fun onSimulateScan(number: Int) =
+        sendAdmin("card-scanned", null, R.string.status_admin_no_connection, payload = JSONObject().put("number", number))
+
+    /** Simulates the physical button, like Block Stacker's test press. */
+    fun onPressButton() =
+        sendAdmin("button-press", null, R.string.status_admin_no_connection, payload = JSONObject().put("id", 1))
+
     /** Asks the server to resend the whole state. The display redraws too, so not during a draw. */
     fun onRefresh() = sendAdmin("admin-get-full-state", null, R.string.status_admin_no_connection)
 
