@@ -27,6 +27,7 @@ Give each agent its own git worktree (`git worktree add -b feat/<x> ~/projects/p
 - **Some games need a handshake on every (re)connect:** Jeopardy! sends `jeopardy-hello {role:"host"}`, Reel Rush sends `hello {role:"admin"}`. Until then the server treats the socket as a display.
 - **Don't send messages that disturb the projected display.** Never send `admin-get-full-state` (Lucky Tap) or `block-stacker-get-state` unprompted.
 - Constants copied from the server (Lucky Tap weights, drain step, slider ranges) must change in both places.
+- **The TV** (`core/tv/TvLink.kt`, `/ws/stage`): one phone leads the `/tv` display, and opening a game moves the TV to it. Keep game screens independent of it.
 - Sockets retry forever (0.5, 1, 2, 4, then 5 s) and ping every 10 s, to match `frontend/src/websocketOptions.ts`.
 
 ## Tests: known traps
