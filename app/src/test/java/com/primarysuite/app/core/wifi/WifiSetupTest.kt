@@ -55,4 +55,11 @@ class WifiSetupTest {
     fun `an open network connects with an empty password`() {
         assertEquals(WifiSetupAction.Connect("EventNet", ""), nextWifiSetupAction(ready.copy(password = "")))
     }
+
+    @Test
+    fun `a connect step never shows the password in logs`() {
+        val text = WifiSetupAction.Connect("GroveParkPrimary", "GrovePark10").toString()
+        assertEquals("Connect(ssid=GroveParkPrimary, password=<hidden>)", text)
+        assertEquals("Connect(ssid=Open, password=<none>)", WifiSetupAction.Connect("Open", "").toString())
+    }
 }

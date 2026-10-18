@@ -46,7 +46,7 @@ sdk="$("$ADB" shell getprop ro.build.version.sdk | tr -d '\r')"
 echo "Device: $model, Android $release (API $sdk)"
 
 if [[ "$BUILD" -eq 1 ]]; then
-  ./gradlew assembleDebug --console=plain -q
+  bash scripts/gradle-locked.sh assembleDebug
 fi
 
 # adb.exe is a Windows program, so it needs a Windows path to the APK.

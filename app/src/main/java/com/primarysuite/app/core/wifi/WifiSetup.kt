@@ -8,7 +8,10 @@ sealed interface WifiSetupAction {
     data object EnableWifi : WifiSetupAction
     data object EnableLocation : WifiSetupAction
     data object MissingSsid : WifiSetupAction
-    data class Connect(val ssid: String, val password: String) : WifiSetupAction
+    data class Connect(val ssid: String, val password: String) : WifiSetupAction {
+        // Logged by the coordinator: never put the password in the system log.
+        override fun toString(): String = "Connect(ssid=$ssid, password=${if (password.isEmpty()) "<none>" else "<hidden>"})"
+    }
 }
 
 /** The device conditions that decide the next [WifiSetupAction]. */
