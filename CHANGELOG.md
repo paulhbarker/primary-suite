@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/paulhbarker/primary-suite/compare/v2.0.0...v2.1.0) (2026-10-18)
+
+
+### Features
+
+* **tv:** move the TV from the game list, with take over ([2f6a379](https://github.com/paulhbarker/primary-suite/commit/2f6a379d3e6ca659b65bb2fbce5b0a3e96285dcb))
+
 ## [2.0.0](https://github.com/paulhbarker/primary-suite/compare/v1.0.2...v2.0.0) (2026-10-18)
 
 
