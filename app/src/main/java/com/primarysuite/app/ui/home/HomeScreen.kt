@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -143,11 +144,12 @@ private fun GameRow(game: Game, onClick: () -> Unit) {
             .alpha(if (game.hasTools) 1f else 0.55f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val accent = if (game.hasTools) gameColor(game.slug) else AppColors.OnSurfaceMedium
         Box(
-            Modifier.size(44.dp).background(AppColors.SurfaceVariant, RoundedCornerShape(12.dp)),
+            Modifier.size(44.dp).background(accent.copy(alpha = 0.16f), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(gameIcon(game.slug), contentDescription = null, tint = if (game.hasTools) AppColors.PrimaryGreen else AppColors.OnSurfaceMedium)
+            Icon(gameIcon(game.slug), contentDescription = null, tint = accent)
         }
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
@@ -164,6 +166,17 @@ private fun GameRow(game: Game, onClick: () -> Unit) {
             Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = AppColors.OnSurfaceMedium)
         }
     }
+}
+
+/** Each game's colour on the home screen, so they're told apart at a glance. */
+fun gameColor(slug: String): Color = when (slug) {
+    "lucky-tap" -> Color(0xFFFF7043)     // orange
+    "jeopardy" -> Color(0xFFFFCC00)      // the show's gold
+    "state-switch" -> Color(0xFF66BB6A)  // green
+    "reel-rush" -> Color(0xFFEC407A)     // cherry pink
+    "block-stacker" -> Color(0xFFAB47BC) // purple
+    "button-debug" -> Color(0xFF26A69A)  // teal
+    else -> AppColors.PrimaryGreen
 }
 
 fun gameIcon(slug: String): ImageVector = when (slug) {

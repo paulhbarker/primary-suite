@@ -33,4 +33,12 @@ class GameCatalogTest {
         assertEquals("Jeopardy!", GameCatalog.find("jeopardy")?.name)
         assertNull(GameCatalog.find("spin-the-wheel"))
     }
+
+    @Test
+    fun `every game has its own colour and icon on the home screen`() {
+        val colors = GameCatalog.games.map { com.primarysuite.app.ui.home.gameColor(it.slug) }
+        assertEquals(colors.size, colors.toSet().size)
+        val icons = GameCatalog.games.map { com.primarysuite.app.ui.home.gameIcon(it.slug) }
+        assertEquals(icons.size, icons.toSet().size)
+    }
 }
