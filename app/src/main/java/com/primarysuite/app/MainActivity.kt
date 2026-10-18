@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.nfc.NfcAdapter
 import android.nfc.tech.Ndef
 import android.os.Build
@@ -66,6 +67,12 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Phones are locked to portrait, tablets (sw600dp) follow the sensor.
+        requestedOrientation = if (resources.getBoolean(R.bool.portrait_only)) {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
         super.onCreate(savedInstanceState)
         val container = appContainer
         val factory = suiteViewModelFactory(

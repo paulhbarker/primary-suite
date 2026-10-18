@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Phones stay in portrait. Tablets override this in values-sw600dp. -->
+    <bool name="portrait_only">true</bool>
+</resources>
