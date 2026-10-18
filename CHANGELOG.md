@@ -1,5 +1,41 @@
 # Changelog
 
+## [2.0.0](https://github.com/paulhbarker/primary-suite/compare/v1.0.2...v2.0.0) (2026-10-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* new applicationId, so it installs as a separate app. Uninstall LuckyTap from devices. local.properties keys must be renamed from luckytap.* to primarysuite.*.
+
+### Features
+
+* **block-stacker:** admin screen with settings, status and message log ([21c1c97](https://github.com/paulhbarker/primary-suite/commit/21c1c9790e788b02c6996cc45f87a2532f62f656))
+* **block-stacker:** open the Block Stacker admin from the home screen ([748645f](https://github.com/paulhbarker/primary-suite/commit/748645fa4ceb9e85560d810ab7f7ce75857b5a38))
+* **button-debug:** button debugger screen, a full port of the web page ([30926f5](https://github.com/paulhbarker/primary-suite/commit/30926f5a65e671fd4f7ce3fa3765837df9672d48))
+* **button-debug:** open the Button Debugger from the home screen ([8b07cd5](https://github.com/paulhbarker/primary-suite/commit/8b07cd570fd6a4ee74428a52376254297705a57c))
+* game list home screen and settings in Compose ([6541032](https://github.com/paulhbarker/primary-suite/commit/6541032c81ed3f0619a574e6bdfabaf823bb90a7))
+* game-button stand-ins fire on touch, not release ([926493b](https://github.com/paulhbarker/primary-suite/commit/926493bf70d88b3df85e8ae73e21995e12c55678))
+* **home:** give each game its own colour on the game list ([f2b163e](https://github.com/paulhbarker/primary-suite/commit/f2b163efd2483d9735d3bde36076b1fc181805dc))
+* **jeopardy:** drain points screen with a hold button per player ([1a276cf](https://github.com/paulhbarker/primary-suite/commit/1a276cfc7c3600f8a1486e4349ac562181bfdeae))
+* **jeopardy:** host controller matching the web host ([58606aa](https://github.com/paulhbarker/primary-suite/commit/58606aa98aa9e6edf3dadf75f9ee9e072f05282d))
+* **jeopardy:** host protocol, board list and connection ([df182bd](https://github.com/paulhbarker/primary-suite/commit/df182bdaf9bd62ece0c040f6a75916eb5791d847))
+* live Lucky Tap game state and admin controls ([d6ee35f](https://github.com/paulhbarker/primary-suite/commit/d6ee35fd0adf7f8e82c9f6140ce94b844d99529d))
+* Lucky Tap scanning station in Compose ([bf32ae2](https://github.com/paulhbarker/primary-suite/commit/bf32ae2433585e9e103553cc90f0b5a14fbbbca5))
+* new Primary Suite icon, four arcade buttons on Simple Games navy ([29eeb9a](https://github.com/paulhbarker/primary-suite/commit/29eeb9a0cd0130022ec7beb246779c543335b170))
+* **reel-rush:** admin screen matching the web admin ([0af33a4](https://github.com/paulhbarker/primary-suite/commit/0af33a42881faf7560fb6dbefc8082edb41db564))
+* **reel-rush:** open the Reel Rush admin from the home screen ([d2d638d](https://github.com/paulhbarker/primary-suite/commit/d2d638d17487fb6427216eb3ad41044943a84709))
+* rename app to Primary Suite ([2cb9e99](https://github.com/paulhbarker/primary-suite/commit/2cb9e99b92e5b634b0803a2bcda11c025fafa075))
+* square icon with rounded corners, red download button from icon palette ([7625412](https://github.com/paulhbarker/primary-suite/commit/7625412ad1be8f861b37f95d5461406e5db7c501))
+* **state-switch:** admin screen matching the web admin ([cc2126a](https://github.com/paulhbarker/primary-suite/commit/cc2126a83272f450be0b903dd020dcbae49aef4f))
+* use real app icon on install landing page ([94eba6e](https://github.com/paulhbarker/primary-suite/commit/94eba6e30d4f4039925938b32f795824272b8be1))
+
+
+### Bug Fixes
+
+* **jeopardy:** drain screen buttons start neutral, only the held one turns red ([b0fe800](https://github.com/paulhbarker/primary-suite/commit/b0fe8004e7769e188bc626b4fc10818acb204ac5))
+* **net:** reconnect like the web, and bind to the event Wi-Fi on Android 6-9 ([923fdae](https://github.com/paulhbarker/primary-suite/commit/923fdaea0b531946421eca152ac4ca1e0f71ad29))
+* **wifi:** keep the Wi-Fi password out of the system log ([911aacf](https://github.com/paulhbarker/primary-suite/commit/911aacf7fafa5bfa5669717394d183803e058710))
+
 ## [1.0.2](https://github.com/paulhbarker/LuckyTap/compare/v1.0.1...v1.0.2) (2026-05-08)
 
 
