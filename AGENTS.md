@@ -1,28 +1,55 @@
 # Agent notes
 
-## Memory: WSL has 8 GB
+Primary Suite is the Android admin app for the Simple Games server (`~/projects/simple-games`, read its `AGENTS.md` too). Plans and progress logs are in `plans/` (`roadmap.md`, one file per game). The README covers the architecture and how to add a game.
 
-Builds run in WSL with `memory=8GB` (`C:\Users\paul\.wslconfig`). Running out freezes the whole VM, so keep Gradle within it.
+## Memory: WSL has 8 GB, and running out freezes the VM
 
-- **Test workers are capped** in `app/build.gradle.kts`: 2 forks, each with a 1 GB heap. A Robolectric/Compose worker uses about 700 MB. The old setting (`nproc / 2` = 8 uncapped forks) is what filled memory. Don't raise it. `-PtestForks=N` overrides it for one run if needed.
-- **Daemons:** the Gradle daemon has `-Xmx2048m` and the Kotlin daemon `-Xmx1024m` (`gradle.properties`). Both stay resident between builds. Run `./gradlew --stop` when you're done for a while.
-- **One heavy task per command.** Don't chain `assembleRelease` (R8) with test runs, and don't loop the full suite in a single command. Run them as separate commands.
-- **Measured peaks** of total WSL memory in use: the full test suite with 2 forks peaks at 4.1 GB and takes 16 s; `assembleDebug assembleRelease` peaks at 3.1 GB.
-- To check a new heavy task, sample `free -m` in the background while it runs before you repeat it.
+- **Run Gradle only through `scripts/gradle-locked.sh`** or `scripts/test.sh`, never `./gradlew` directly. The lock queues builds machine-wide, so parallel agents share one Gradle and one Kotlin daemon.
+- `scripts/test.sh` runs the full suite (2 forks, about 4 GB peak, 25 s). `scripts/test.sh 'com.primarysuite.app.games.<pkg>.*'` runs one package in one fork. A result of "0 tests" is a failure.
+- **One heavy task per command.** Don't chain `assembleRelease` with tests. Keep the fork cap (2 × 1 GB) and the daemon heaps in `gradle.properties` as they are.
+- **Use a timeout** (`timeout 600 scripts/test.sh ...`). A hung Robolectric test holds the lock and blocks every other agent. If a run takes several minutes, kill its test worker JVM, not the daemon.
+- Run `./gradlew --stop` when you finish, unless other agents are still working.
 
 ## Parallel agents
 
-Several agents may work at once, each in its own git worktree under `~/projects/primary-suite-wt/`. They must never run Gradle at the same time:
+Give each agent its own git worktree (`git worktree add -b feat/<x> ~/projects/primary-suite-wt/<x> main`, then copy `local.properties` in). Agents touch only their own `games/<pkg>/`, tests, `strings_<pkg>.xml` and plan. The lead does the shared wiring: `GameCatalog`, `PrimarySuiteNavHost`, `MainActivity`, README and roadmap. Remove the worktrees when you're done.
 
-- **Always run Gradle through `scripts/gradle-locked.sh`** (or `scripts/test.sh`, which uses it). It takes a machine-wide `flock`, so builds queue and share one Gradle daemon and one Kotlin daemon. Never call `./gradlew` directly, and never `./gradlew --stop` while other agents are working.
-- **Run only your own tests:** `scripts/test.sh 'com.primarysuite.app.games.<pkg>.*'` runs matching classes in one fork. Leave the full suite to whoever merges.
-- **Compile check:** `scripts/gradle-locked.sh compileDebugUnitTestKotlin` compiles main and test code without running anything.
-- **No release builds** (`assembleRelease`, R8) from agents; the merge step does one.
-- **Rendered screenshots** (Robolectric `GraphicsMode.NATIVE`) are fine through the same scripts. Delete any scratch test before committing.
+## Git and releases
 
-## Building
+- Commit straight to `main` with conventional commits (`feat(jeopardy): ...`). Tests must pass before a push.
+- `main` **rejects merge commits.** Bring branches in with `git cherry-pick` or a rebase, and merge PRs with squash.
+- Release Please keeps a release PR open. Merging it tags the release and calls `build-release.yml`, which attaches `app-release.apk`. The install page links to `/latest/download/app-release.apk`, so keep that file name.
+- CI secrets (`DEFAULT_WIFI_*`, signing) feed the release build. Never log secrets: the Wi-Fi password once leaked through a generated `toString`.
 
-- The Android SDK is at `~/Android/Sdk`, and `ANDROID_HOME` is set in `~/.bashrc`.
-- `./gradlew testDebugUnitTest` runs every test (JVM only: JUnit, Robolectric, MockWebServer).
-- `scripts/device-smoke.sh` installs on a USB phone using the Windows `adb.exe`.
-- The plan and progress log are in `plans/roadmap.md`.
+## Talking to the server
+
+- **The server is authoritative.** Screens show what it sends and send exactly what the game's web admin sends. Read the Go handlers in `backend/cmd/` before writing a protocol.
+- **Some games need a handshake on every (re)connect:** Jeopardy! sends `jeopardy-hello {role:"host"}`, Reel Rush sends `hello {role:"admin"}`. Until then the server treats the socket as a display.
+- **Don't send messages that disturb the projected display.** Never send `admin-get-full-state` (Lucky Tap) or `block-stacker-get-state` unprompted.
+- Constants copied from the server (Lucky Tap weights, drain step, slider ranges) must change in both places.
+- Sockets retry forever (0.5, 1, 2, 4, then 5 s) and ping every 10 s, to match `frontend/src/websocketOptions.ts`.
+
+## Tests: known traps
+
+- In a `Dialog` under Robolectric, use `rememberTextFieldState`. A value-based `OutlinedTextField` never goes idle there, so the test hangs and then runs out of memory.
+- Endless loops (ping tickers, `withInfiniteAnimationFrameMillis`) must be injectable or stopped in tests, or virtual time never ends.
+- Inject dispatchers. A real `Dispatchers.IO` in a screen test races the assertions and fails on slow CI.
+- `JSONObject` doesn't keep key order, so compare fields. Send floats as `value.toString().toDouble()`, or `2.3f` goes out as `2.299999952316284`.
+- Kotlin test names can't contain `; : . / [ ]`. Button labels merge into the button node, so find buttons by test tag.
+- Versions are pinned (Kotlin 2.2, compileSdk 36, Compose BOM 2026.06.01, Coil 3.3.0). Newer versions need Kotlin 2.3 or compileSdk 37.
+- To look at a screen, render it with a scratch Robolectric test (`GraphicsMode.NATIVE`), then delete the test. The image viewer caches by path and may not see new files in `/tmp` straight away, so use a new file name, saved under the project's `build/`.
+
+## Device and Pi
+
+- **Phone:** use `scripts/device-smoke.sh` (Windows `adb.exe`) to build, install and launch.
+  - Screenshot: `adb.exe exec-out screencap -p > build/x.png`. Logs: `adb.exe logcat -d --pid=$(adb.exe shell pidof com.primarysuite.app)`.
+  - After a fresh install, the user must allow location and tap **Connect** for `GroveParkPrimary`.
+  - A debug build blocks the release install (different signing key), so uninstall it first.
+- **Pi:** `ssh paul@10.0.0.1`, service `gameserver` (`journalctl -u gameserver`).
+  - The network is `GroveParkPrimary`: WPA2/AES, 2.4 GHz, no internet. The app binds its traffic to it.
+  - The Pi's clock can be days behind, so don't trust its log dates.
+- **Icon:** edit `scripts/icon/make_icon.py`, then run `scripts/icon/render.sh`.
+
+## Writing
+
+Use plain, direct English in code comments, strings, plans and commits. No em dashes, no filler.
