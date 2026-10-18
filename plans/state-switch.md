@@ -19,6 +19,7 @@ Run the State Switch game from the app with the same controls as the web admin (
 | Other admins | The app always follows the server's latest settings broadcast. The web admin only reads them once, on load. |
 | Screen | Stays on while open, since the Switch button is used all through a game. |
 | Layout | One column, at most 560 dp wide, centred on tablets. |
+| Display mode | A top-bar button opens a full-screen view of the current side: the web slide's background colour, which changes with each switch, and its word in large Socafe text. No images, no limit counter. Taps do nothing, Back leaves. System bars are hidden. Random and unknown games show the web's blank `#304A6C`. |
 
 ## Protocol (from `backend/cmd/state_switch.go`)
 
@@ -43,6 +44,7 @@ Timeout is 0 to 9 s in steps of 0.1; limit is 0 to 20 in steps of 2. The timeout
 - `games/stateswitch/StateSwitchProtocol.kt`: `GameType`, `StateSwitchSettings` (parse, `toJson`, rounding, `WEB_DEFAULTS`), `StateSwitchState`, `StateSwitchCommands`.
 - `games/stateswitch/StateSwitchViewModel.kt`: socket, `StateSwitchUiState` (`canSwitch`, `limitReached`), `updateSettings`, `switch`, `resetActuations`, `resetAll`, errors.
 - `games/stateswitch/StateSwitchScreen.kt`: route and screen.
+- `games/stateswitch/StateSwitchDisplay.kt`: display mode, and `StateSlides` (words and colours from `frontend/src/games/state-switch/slides/`).
 - Shared with Jeopardy, moved to `core/ui/Controls.kt`: `Picker` (now with `enabled`) and `OfflineBadge`.
 
 ## Phases
@@ -59,9 +61,14 @@ Timeout is 0 to 9 s in steps of 0.1; limit is 0 to 20 in steps of 2. The timeout
 - [x] Reset All leaves Fast / Slow, 2.5 s, no limit
 - [ ] Changes from the web admin appear in the app
 
+### S3: display mode
+- [x] Full-screen display of the current side, following the server, with tests
+- [ ] Checked on a phone and a tablet against the Pi
+
 ## Progress log
 
 | Date | Phase | Notes |
 |---|---|---|
 | 2026-10-17 | S1 | Built the admin screen. 253 tests. Caught the timeout float being sent as `2.299999952316284`. |
 | 2026-10-17 | S2 | On the Galaxy S10+ (SM-G975U), Android 12 (API 31) against the Pi: settings reach the display and slider releases send once; Switch, cooldown and limit work; Reset All leaves Fast / Slow, 2.5 s, no limit. Changed on request: Switch now fires on touch, not release. Not checked: web admin changes appearing in the app. |
+| 2026-10-18 | S3 | Added display mode: full-screen colour and word for the current side, phone and tablet. Not yet checked on a device. |
