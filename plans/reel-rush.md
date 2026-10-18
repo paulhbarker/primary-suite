@@ -1,6 +1,6 @@
 # Reel Rush admin
 
-> Status: **R1 done** (admin screen, view model, tests). Checking against the Pi waits for the device testing at the end of the project. Update the status line and the progress log as phases finish.
+> Status: **R2 mostly done** (checked on the phone against the Pi). Left: web admin changes appearing in the app.
 
 ## Goal
 
@@ -66,9 +66,9 @@ Next-round button label, as on the web: voided result gives "Replay the round"; 
 - [x] Screen, with Robolectric tests (every control per phase, confirmations, settings form, offline lock)
 
 ### R2: against the Pi (with the final device testing)
-- [ ] The admin gets state after hello and after a reconnect
-- [ ] A full game from the phone: lobby (players join on the buttons), start, rounds, close round, replay, final, back to the lobby
-- [ ] Settings save reaches the display; a bad value shows the server's error
+- [x] The admin gets state after hello and after a reconnect
+- [x] A full game from the phone: lobby (players join on the buttons), start, rounds, close round, replay, final, back to the lobby
+- [x] Settings save reaches the display; a bad value shows the server's error
 - [ ] Changes from the web admin appear in the app
 
 ## Open questions
@@ -80,3 +80,4 @@ Next-round button label, as on the web: voided result gives "Replay the round"; 
 | Date | Phase | Notes |
 |---|---|---|
 | 2026-10-17 | R1 | Built the admin screen (Game and Settings tabs), view model, settings form with local range checks. 64 tests. The admin needs the `hello {role: admin}` handshake, sent on every connect. |
+| 2026-10-17 | R2 | On the Galaxy S10+ (SM-G975U), Android 12 (API 31) against the Pi: hello, lobby, start, next round, end game and settings save all worked with no server errors. Not checked: web admin changes in the app. |

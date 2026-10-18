@@ -1,6 +1,6 @@
 # Button Debugger admin
 
-> Status: **B1 done** (protocol, analysis, view model, screen, tests). Checking against the Pi waits for the device testing at the end of the project. Update the status line and the progress log as phases finish.
+> Status: **B2 mostly done** (checked on the phone against the Pi). Left: Wi-Fi button stats, colours surviving an app restart.
 
 ## Goal
 
@@ -67,9 +67,9 @@ Verdicts (`analysis.ts`): `press`, `pending`, `bounce`, `disabled`, `late-press`
 - [x] Screen, with Robolectric tests (every control, banners, tiles, colour picker, log)
 
 ### B2: against the Pi (with the final device testing)
-- [ ] Tiles light and count with real presses on the box, including fast tapping
-- [ ] Chase, Follow press, All on and All off drive the LEDs; the games get the LEDs back when the screen closes
-- [ ] Debounce changes apply (`quietMs` follows)
+- [x] Tiles light and count with real presses on the box, including fast tapping
+- [x] Chase, Follow press, All on and All off drive the LEDs; the games get the LEDs back when the screen closes
+- [x] Debounce changes apply (`quietMs` follows)
 - [ ] Wi-Fi button presses show up with RSSI and lost-sequence counts
 - [ ] Colours survive an app restart
 
@@ -82,3 +82,4 @@ Verdicts (`analysis.ts`): `press`, `pending`, `bounce`, `disabled`, `late-press`
 | Date | Phase | Notes |
 |---|---|---|
 | 2026-10-17 | B1 | Built the full port. 141 tests. Verified layout with rendered screenshots (scratch test deleted). Found the socket's 64-event buffer could drop edges in a burst, so edges are handled on a background dispatcher. |
+| 2026-10-17 | B2 | On the Galaxy S10+ (SM-G975U), Android 12 (API 31) against the box: tiles, LEDs, debounce and stats work; RTT pings every 2 s. Not checked: Wi-Fi buttons, colours after an app restart. |

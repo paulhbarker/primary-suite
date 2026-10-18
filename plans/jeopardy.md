@@ -1,6 +1,6 @@
 # Jeopardy! host controller
 
-> Status: **J5 next** (check against the Pi). It needs the phone and the Pi. Update the status line and the progress log as each phase starts or finishes.
+> Status: **Done.** Checked on the phone against the Pi.
 
 ## Goal
 
@@ -138,7 +138,7 @@ All tests run on the JVM, within the limits in `AGENTS.md`.
 - [x] Settings sheet with every field, sending `jeopardy-update-settings`, with tests.
 
 ### J5: check against the Pi
-- [ ] Play a full game against the real server on the phone, with the display on the projector and phones or box buttons as buzzers. Needs the phone and the Pi.
+- [x] Play a full game against the real server on the phone, with the display on the projector and phones or box buttons as buzzers. Needs the phone and the Pi.
 
 ## Notes from building it
 
@@ -154,3 +154,4 @@ All tests run on the JVM, within the limits in `AGENTS.md`.
 | 2026-10-17 | J1 | Protocol, boards API, countdown, and a view model that says hello on every connect and ignores the public view until welcomed. 29 new tests; 181 in total. |
 | 2026-10-17 | J2–J4 | Host shell, lobby, players, player dialog with drain, score log, every game phase, Daily Double wager, image sides and settings. 36 Robolectric UI tests against fixture states; 218 tests in 19 s. Screens checked as rendered images: phone and tablet layouts, board, reading, answering, Daily Double. |
 | 2026-10-17 | extra | Added a Drain points button under the scores, opening a view with one full-height-share hold button per player. Its hold-to-repeat behaviour is shared with the dialog's drain button. 222 tests. |
+| 2026-10-17 | J5 | On the Galaxy S10+ (SM-G975U), Android 12 (API 31) against the Pi with the display: clues, buzzers (vibrates), judging, Daily Double, drain screen, undo, settings, end round and end game. After 10 min asleep, the host screen reconnected and said hello again 3 s after waking. |

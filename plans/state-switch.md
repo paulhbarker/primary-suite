@@ -1,6 +1,6 @@
 # State Switch admin
 
-> Status: **S1 done.** Checking against the Pi waits for the device testing at the end of the project. Update the status line and the progress log as phases finish.
+> Status: **S2 mostly done** (checked on the phone against the Pi). Left: changes from the web admin appearing in the app.
 
 ## Goal
 
@@ -54,9 +54,9 @@ Timeout is 0 to 9 s in steps of 0.1; limit is 0 to 20 in steps of 2. The timeout
 - [x] Home screen opens it on its own socket
 
 ### S2: against the Pi (with the final device testing)
-- [ ] Every setting reaches the display; slider releases send once
-- [ ] The Switch button flips the display, respects the timeout and limit, and the physical button still works
-- [ ] Reset All leaves Fast / Slow, 2.5 s, no limit
+- [x] Every setting reaches the display; slider releases send once
+- [x] The Switch button flips the display, respects the timeout and limit, and the physical button still works
+- [x] Reset All leaves Fast / Slow, 2.5 s, no limit
 - [ ] Changes from the web admin appear in the app
 
 ## Progress log
@@ -64,3 +64,4 @@ Timeout is 0 to 9 s in steps of 0.1; limit is 0 to 20 in steps of 2. The timeout
 | Date | Phase | Notes |
 |---|---|---|
 | 2026-10-17 | S1 | Built the admin screen. 253 tests. Caught the timeout float being sent as `2.299999952316284`. |
+| 2026-10-17 | S2 | On the Galaxy S10+ (SM-G975U), Android 12 (API 31) against the Pi: settings reach the display and slider releases send once; Switch, cooldown and limit work; Reset All leaves Fast / Slow, 2.5 s, no limit. Changed on request: Switch now fires on touch, not release. Not checked: web admin changes appearing in the app. |

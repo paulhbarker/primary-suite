@@ -1,6 +1,6 @@
 # Block Stacker admin
 
-> Status: **B1 done.** Checking against the Pi waits for the device testing at the end of the project. Update the status line and the progress log as phases finish.
+> Status: **B2 mostly done** (checked on the phone against the Pi). Left: Game Enabled off, and web admin changes appearing in the app.
 
 ## Goal
 
@@ -54,9 +54,9 @@ On connect the server sends `block-stacker-game-state`. No handshake.
 - [ ] Home screen opens it on its own socket (the lead wires this)
 
 ### B2: against the Pi (with the final device testing)
-- [ ] Save changes the display's speed and level count
+- [x] Save changes the display's speed and level count
 - [ ] Game Enabled off stops the display starting games
-- [ ] Test Button Press drops a block on the display
+- [x] Test Button Press drops a block on the display
 - [ ] Changes from the web admin appear in the app
 
 ## Open questions
@@ -68,3 +68,4 @@ On connect the server sends `block-stacker-game-state`. No handshake.
 | Date | Phase | Notes |
 |---|---|---|
 | 2026-10-17 | B1 | Built the admin screen. 28 tests. Checked the look with a rendered screenshot and fixed the dark Reset button text. |
+| 2026-10-17 | B2 | On the Galaxy S10+ (SM-G975U), Android 12 (API 31) against the Pi: Save reached the server (defaults 15 / 1.7 / 0.8 / on applied) and Test button press drives the game. Test button press now fires on touch. Not checked: Game Enabled off, web admin changes in the app. |
