@@ -157,9 +157,6 @@ data class WheelState(
 
     val totalWeight: Int get() = weights.sum()
 
-    /** How many times each value has come up in [history]. */
-    fun count(value: Int): Int = history.count { it.value == value }
-
     /** The ten weights with [value]'s set to [weight], or null if that's out of range or would leave none above 0. */
     fun weightsWith(value: Int, weight: Int): List<Int>? {
         val i = values.indexOf(value)

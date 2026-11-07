@@ -249,16 +249,6 @@ private fun HistoryCard(state: WheelState, clockOffsetMs: Long, enabled: Boolean
             Text(stringResource(R.string.spinwheel_history_empty), color = AppColors.OnSurfaceMedium, fontSize = 14.sp)
             return@Card
         }
-        state.values.sorted().chunked(5).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { v ->
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        ValueChip(v, Modifier.fillMaxWidth(), minWidth = 0.dp, fontSize = 12)
-                        Text("${state.count(v)}", fontFamily = FontFamily.Monospace, fontSize = 14.sp, modifier = Modifier.testTag(SpinWheelTags.count(v)))
-                    }
-                }
-            }
-        }
         Column {
             state.history.forEachIndexed { i, r ->
                 if (i > 0) HorizontalDivider(color = AppColors.Outline)

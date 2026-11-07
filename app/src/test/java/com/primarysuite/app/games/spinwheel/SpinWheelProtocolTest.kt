@@ -39,8 +39,6 @@ class SpinWheelProtocolTest {
         assertEquals(500, s.spinValue)
         assertEquals(WheelResult(2, 500, 1_700_000_000_000, 3, true), s.lastResult)
         assertEquals(listOf(2, 1), s.history.map { it.id })
-        assertEquals(1, s.count(500))
-        assertEquals(0, s.count(900))
     }
 
     @Test

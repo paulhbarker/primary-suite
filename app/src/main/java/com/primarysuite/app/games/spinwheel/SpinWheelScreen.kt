@@ -67,7 +67,6 @@ object SpinWheelTags {
     const val DISCARD = "spinWheel.set.discard"
 
     fun force(value: Int) = "spinWheel.force.$value"
-    fun count(value: Int) = "spinWheel.count.$value"
     fun historyRow(id: Int) = "spinWheel.history.$id"
     fun weight(value: Int) = "spinWheel.weight.$value"
     fun less(value: Int) = "spinWheel.less.$value"

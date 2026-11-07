@@ -136,8 +136,6 @@ class SpinWheelScreenTest {
         show()
         wheel(Fixtures.state(lastResult = history[0], history = history))
         compose.onNodeWithTag(SpinWheelTags.LAST_RESULT).assertTextContains("blue button, rigged", substring = true)
-        compose.onNodeWithTag(SpinWheelTags.count(500)).performScrollTo().assertTextEquals("2")
-        compose.onNodeWithTag(SpinWheelTags.count(100)).assertTextEquals("0")
         compose.onNodeWithTag(SpinWheelTags.historyRow(1)).performScrollTo().assertTextContains("admin", substring = true)
         compose.onNodeWithTag(SpinWheelTags.HISTORY_TITLE).assertTextContains(context.resources.getQuantityString(R.plurals.spinwheel_history_count, 2, 2))
     }
