@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Nfc
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Toys
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -198,6 +199,7 @@ fun gameColor(slug: String): Color = when (slug) {
     "jeopardy" -> Color(0xFFFFCC00)      // the show's gold
     "state-switch" -> Color(0xFF66BB6A)  // green
     "reel-rush" -> Color(0xFFEC407A)     // cherry pink
+    "spin-the-wheel" -> Color(0xFFD4A537) // the wheel's satin gold
     "block-stacker" -> Color(0xFFAB47BC) // purple
     "button-debug" -> Color(0xFF26A69A)  // teal
     else -> AppColors.PrimaryGreen
@@ -208,6 +210,7 @@ fun gameIcon(slug: String): ImageVector = when (slug) {
     "jeopardy" -> Icons.Outlined.GridView
     "state-switch" -> Icons.Outlined.Bolt
     "reel-rush" -> Icons.Outlined.Casino
+    "spin-the-wheel" -> Icons.Outlined.Toys
     "block-stacker" -> Icons.Outlined.Layers
     "button-debug" -> Icons.Outlined.Memory
     else -> Icons.Outlined.Extension

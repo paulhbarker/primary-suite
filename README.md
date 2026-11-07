@@ -12,6 +12,7 @@ It opens on a list of the Simple Games games, and each one has its admin tools: 
 - **Jeopardy! host**: the web host controller on the phone: lobby, board, clues with a hidden-until-peeked response, buzzers, judging, Daily Double wagers, players (scores, control, buttons), a drain-points screen, undo and settings. The phone vibrates when someone buzzes in.
 - **State Switch admin**: game type, button timeout and limit, Reset Actuations and Reset All, as on the web, plus a Switch button that flips the display like the physical button.
 - **Reel Rush admin**: lobby, start, close and replay rounds, end and reset (confirmed), players with remove, round results and final standings, and every setting with local range checks.
+- **Spin the Wheel admin**: spin, lock the buttons, rig the next result, set each value's odds, spin and result times, and the history with counts per value.
 - **Block Stacker admin**: max levels, speeds and game enabled (saved together, as on the web), a test button press, game status and a live message log.
 - **Button Debugger**: the web's button diagnostics: live tiles per button, edge timing, noise and stuck-line checks, Wi-Fi button stats, round-trip time, LED tests, debounce and the edge log.
 - **Game-button stand-ins** (State Switch's Switch, Block Stacker's test press) fire on touch, like the arcade buttons.
@@ -33,7 +34,7 @@ It opens on a list of the Simple Games games, and each one has its admin tools: 
 ```
 
 1. **Startup**: the app asks for location permission (Android needs it to join a WiFi network), joins the event network, and checks that the game server answers.
-2. **Game screens**: each game opens its own socket to `/ws/{slug}` while its screen is open, and closes it on the way out. The server is authoritative: screens show what it sends, and send the same `{type, payload}` messages as the game's web admin. Jeopardy! and Reel Rush say hello as host/admin on every connect, as the web does.
+2. **Game screens**: each game opens its own socket to `/ws/{slug}` while its screen is open, and closes it on the way out. The server is authoritative: screens show what it sends, and send the same `{type, payload}` messages as the game's web admin. Jeopardy!, Reel Rush and Spin the Wheel say hello as host/admin on every connect, as the web does.
 3. **Lucky Tap**: in Read, Check-In or Check-Out mode, a tapped card's NDEF number is sent to the server (e.g. `{"type": "nfc-check-in", "payload": {"number": 42}}`). Write mode writes a number to a blank card.
 
 ### Architecture
@@ -46,6 +47,7 @@ It opens on a list of the Simple Games games, and each one has its admin tools: 
 | **SettingsViewModel** | `ui/settings/` | WiFi and server overrides with validation |
 | **GameCatalog** | `catalog/GameCatalog.kt` | The games the suite lists, and which have tools |
 | **ReelRushScreen / ReelRushViewModel** | `games/reelrush/` | Reel Rush admin over `/ws/reel-rush` |
+| **SpinWheelScreen / SpinWheelViewModel** | `games/spinwheel/` | Spin the Wheel admin over `/ws/spin-the-wheel` |
 | **ButtonDebugScreen / ButtonDebugViewModel** | `games/buttondebug/` | Button Debugger over `/ws/button-debug` |
 | **BlockStackerScreen / BlockStackerViewModel** | `games/blockstacker/` | Block Stacker admin over `/ws/block-stacker` |
 | **StateSwitchScreen / StateSwitchViewModel** | `games/stateswitch/` | State Switch admin over `/ws/state-switch` |

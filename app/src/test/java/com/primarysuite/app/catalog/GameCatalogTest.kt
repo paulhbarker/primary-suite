@@ -10,7 +10,7 @@ class GameCatalogTest {
     @Test
     fun `lists every game the server hosts, Lucky Tap first`() {
         assertEquals(
-            listOf("lucky-tap", "jeopardy", "state-switch", "reel-rush", "block-stacker", "button-debug"),
+            listOf("lucky-tap", "jeopardy", "state-switch", "reel-rush", "spin-the-wheel", "block-stacker", "button-debug"),
             GameCatalog.games.map { it.slug },
         )
     }
@@ -25,13 +25,13 @@ class GameCatalogTest {
 
     @Test
     fun `every game has tools`() {
-        assertEquals(listOf(GameCatalog.LUCKY_TAP, GameCatalog.JEOPARDY, GameCatalog.STATE_SWITCH, GameCatalog.REEL_RUSH, GameCatalog.BLOCK_STACKER, GameCatalog.BUTTON_DEBUG), GameCatalog.games.filter { it.hasTools }.map { it.slug })
+        assertEquals(listOf(GameCatalog.LUCKY_TAP, GameCatalog.JEOPARDY, GameCatalog.STATE_SWITCH, GameCatalog.REEL_RUSH, GameCatalog.SPIN_THE_WHEEL, GameCatalog.BLOCK_STACKER, GameCatalog.BUTTON_DEBUG), GameCatalog.games.filter { it.hasTools }.map { it.slug })
     }
 
     @Test
     fun `finds games by slug`() {
         assertEquals("Jeopardy!", GameCatalog.find("jeopardy")?.name)
-        assertNull(GameCatalog.find("spin-the-wheel"))
+        assertNull(GameCatalog.find("wheel-of-cheese"))
     }
 
     @Test

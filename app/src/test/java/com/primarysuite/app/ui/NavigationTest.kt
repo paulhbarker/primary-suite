@@ -17,6 +17,7 @@ import com.primarysuite.app.catalog.Game
 import com.primarysuite.app.catalog.GameCatalog
 import com.primarysuite.app.games.blockstacker.BlockStackerTags
 import com.primarysuite.app.games.reelrush.ReelRushTags
+import com.primarysuite.app.games.spinwheel.SpinWheelTags
 import com.primarysuite.app.games.buttondebug.ButtonDebugTags
 import com.primarysuite.app.core.config.ServerConfig
 import com.primarysuite.app.core.config.serverConfig
@@ -68,7 +69,7 @@ class NavigationTest {
 
     /** The real catalog plus a game without tools (second, so it's on screen), for the coming-soon screen. */
     private val games = GameCatalog.games.take(1) +
-        Game("spin-the-wheel", "Spin the Wheel", "No tools yet", hasTools = false) +
+        Game("trivia-night", "Trivia Night", "No tools yet", hasTools = false) +
         GameCatalog.games.drop(1)
 
     @Before
@@ -179,9 +180,9 @@ class NavigationTest {
 
     @Test
     fun `a game without tools shows coming soon, and back returns home`() {
-        compose.onNodeWithTag(HomeTags.game("spin-the-wheel")).performClick()
+        compose.onNodeWithTag(HomeTags.game("trivia-night")).performClick()
 
-        compose.onNodeWithText(s(R.string.coming_soon_body, "Spin the Wheel")).assertIsDisplayed()
+        compose.onNodeWithText(s(R.string.coming_soon_body, "Trivia Night")).assertIsDisplayed()
         assertEquals(emptyList<String>(), socketSlugs)
 
         pressBack()
@@ -194,6 +195,18 @@ class NavigationTest {
 
         compose.onNodeWithTag(ButtonDebugTags.LIST).assertExists()
         assertEquals(listOf("button-debug"), socketSlugs)
+
+        pressBack()
+        assertOnHome()
+        assertEquals(true, socket.shutdownCalled)
+    }
+
+    @Test
+    fun `Spin the Wheel opens its admin on its own socket`() {
+        compose.onNodeWithTag(HomeTags.game("spin-the-wheel")).performClick()
+
+        compose.onNodeWithTag(SpinWheelTags.CONNECTING).assertExists()
+        assertEquals(listOf("spin-the-wheel"), socketSlugs)
 
         pressBack()
         assertOnHome()

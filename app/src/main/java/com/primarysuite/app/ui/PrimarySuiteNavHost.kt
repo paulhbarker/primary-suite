@@ -37,6 +37,8 @@ import com.primarysuite.app.games.jeopardy.JeopardyHostViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapRoute
 import com.primarysuite.app.games.reelrush.ReelRushRoute
 import com.primarysuite.app.games.reelrush.ReelRushViewModel
+import com.primarysuite.app.games.spinwheel.SpinWheelRoute
+import com.primarysuite.app.games.spinwheel.SpinWheelViewModel
 import com.primarysuite.app.games.stateswitch.StateSwitchRoute
 import com.primarysuite.app.games.stateswitch.StateSwitchViewModel
 import com.primarysuite.app.games.luckytap.LuckyTapViewModel
@@ -99,6 +101,9 @@ fun suiteViewModelFactory(
     }
     initializer {
         ReelRushViewModel(wifi) { scope, canConnect -> socketFactory(ReelRushViewModel.GAME_SLUG, scope, canConnect) }
+    }
+    initializer {
+        SpinWheelViewModel(wifi) { scope, canConnect -> socketFactory(SpinWheelViewModel.GAME_SLUG, scope, canConnect) }
     }
     initializer {
         ButtonDebugViewModel(
@@ -214,6 +219,10 @@ fun PrimarySuiteNavHost(
                 game.slug == GameCatalog.REEL_RUSH -> {
                     val vm: ReelRushViewModel = viewModel(factory = viewModelFactory)
                     ReelRushRoute(vm, onBack = onBack)
+                }
+                game.slug == GameCatalog.SPIN_THE_WHEEL -> {
+                    val vm: SpinWheelViewModel = viewModel(factory = viewModelFactory)
+                    SpinWheelRoute(vm, onBack = onBack)
                 }
                 game.slug == GameCatalog.BUTTON_DEBUG -> {
                     val vm: ButtonDebugViewModel = viewModel(factory = viewModelFactory)
