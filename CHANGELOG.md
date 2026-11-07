@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.0](https://github.com/paulhbarker/primary-suite/compare/v2.4.0...v2.5.0) (2026-11-07)
+
+
+### Features
+
+* **spin-the-wheel:** admin for the new prize wheel ([3c6dde9](https://github.com/paulhbarker/primary-suite/commit/3c6dde9c20f2049140917bf88787110fb106bedd))
+
+
+### Bug Fixes
+
+* **spin-wheel:** drop the per-value counts from the history card ([39ec4e8](https://github.com/paulhbarker/primary-suite/commit/39ec4e8010f4e459f395fe1cf9e478bb0bb3d881))
+
 ## [2.4.0](https://github.com/paulhbarker/primary-suite/compare/v2.3.0...v2.4.0) (2026-10-18)
 
 
